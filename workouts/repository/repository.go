@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/jwfriese/workouttracker/sqlhelpers"
-	"github.com/jwfriese/workouttracker/workouts/datamodel"
+	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
+	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 	"log"
 )
 

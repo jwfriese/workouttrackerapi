@@ -2,7 +2,7 @@ package sqlhelpers_test
 
 import (
 	"database/sql"
-	"github.com/jwfriese/workouttracker/sqlhelpers"
+	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	_ "github.com/lib/pq"
 	"log"
 

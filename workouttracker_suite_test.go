@@ -1,4 +1,4 @@
-package workouttracker_test
+package workouttrackerapi_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestWorkouttracker(t *testing.T) {
+func TestWorkouttrackerapi(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Workouttracker Suite")
+	RunSpecs(t, "Workouttrackerapi Suite")
 }

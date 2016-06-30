@@ -1,10 +1,10 @@
 package workouts_test
 
 import (
-	"github.com/jwfriese/workouttracker/httpfakes"
-	"github.com/jwfriese/workouttracker/workouts"
-	"github.com/jwfriese/workouttracker/workouts/datamodel"
-	"github.com/jwfriese/workouttracker/workouts/repository/repositoryfakes"
+	"github.com/jwfriese/workouttrackerapi/httpfakes"
+	"github.com/jwfriese/workouttrackerapi/workouts"
+	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
+	"github.com/jwfriese/workouttrackerapi/workouts/repository/repositoryfakes"
 	"net/http"
 
 	. "github.com/onsi/ginkgo"
@@ -23,7 +23,6 @@ var _ = Describe("workouts", func() {
 
 		BeforeEach(func() {
 			fakeWorkoutRepository = new(repositoryfakes.FakeWorkoutRepository)
-
 			handler = workouts.WorkoutsHandler(fakeWorkoutRepository)
 		})
 

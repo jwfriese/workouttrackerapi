@@ -1,7 +1,7 @@
-package workouttracker_test
+package workouttrackerapi_test
 
 import (
-	_ "github.com/jwfriese/workouttracker"
+	_ "github.com/jwfriese/workouttrackerapi"
 
 	. "github.com/onsi/ginkgo"
 	_ "github.com/onsi/gomega"

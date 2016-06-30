@@ -2,8 +2,8 @@ package repository_test
 
 import (
 	"database/sql"
-	"github.com/jwfriese/workouttracker/workouts/datamodel"
-	"github.com/jwfriese/workouttracker/workouts/repository"
+	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
+	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 	_ "github.com/lib/pq"
 
 	. "github.com/onsi/ginkgo"

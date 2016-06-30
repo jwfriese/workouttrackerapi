@@ -4,7 +4,7 @@ import (
 	"bytes"
 	_ "database/sql"
 	"encoding/json"
-	"github.com/jwfriese/workouttracker/workouts/repository"
+	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
