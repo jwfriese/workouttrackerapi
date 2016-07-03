@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
@@ -67,5 +68,35 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 }
 
 func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
-	return nil
+	query := fmt.Sprintf("SELECT * FROM lifts WHERE id=%v", id)
+	row := r.connection.QueryRow(query)
+
+	var liftId int
+	var name string
+	var workout int
+	var dataTemplate string
+	var setIds sqlhelpers.IntSlice
+
+	err := row.Scan(&liftId, &name, &workout, &dataTemplate, &setIds)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+
+		log.Fatal(err)
+	}
+
+	var sets []*setdatamodel.Set
+	for _, setId := range setIds {
+		set := r.setRepository.GetById(setId)
+		sets = append(sets, set)
+	}
+
+	return &liftdatamodel.Lift{
+		Id:           liftId,
+		Name:         name,
+		Workout:      workout,
+		DataTemplate: dataTemplate,
+		Sets:         sets,
+	}
 }

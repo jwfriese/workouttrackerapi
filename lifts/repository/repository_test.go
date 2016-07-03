@@ -72,4 +72,52 @@ var _ = Describe("LiftRepository", func() {
 			Expect(lifts[3].Sets[2]).To(BeIdenticalTo(puppySet))
 		})
 	})
+
+	Describe("Getting a single lift by ID from the database", func() {
+		Context("When there exists a lift with that ID in the database", func() {
+			var (
+				result *liftdatamodel.Lift
+				set    *setdatamodel.Set
+			)
+
+			BeforeEach(func() {
+				set = &setdatamodel.Set{}
+				fakeSetRepository.GetByIdStub = func(id int) *setdatamodel.Set {
+					if id == 34 {
+						return set
+					}
+
+					return nil
+				}
+
+				result = subject.GetById(12)
+			})
+
+			It("retrieves the requested lift from the database", func() {
+				Expect(result).ToNot(BeNil())
+
+				Expect(result.Id).To(Equal(12))
+				Expect(result.Name).To(Equal("turtle hangs"))
+				Expect(result.Workout).To(Equal(5))
+				Expect(result.DataTemplate).To(Equal("time_in_seconds"))
+
+				Expect(len(result.Sets)).To(Equal(1))
+				Expect(result.Sets[0]).To(BeIdenticalTo(set))
+			})
+		})
+
+		Context("When there is no lift with that id in the database", func() {
+			var (
+				result *liftdatamodel.Lift
+			)
+
+			BeforeEach(func() {
+				result = subject.GetById(1111111)
+			})
+
+			It("returns nil", func() {
+				Expect(result).To(BeNil())
+			})
+		})
+	})
 })
