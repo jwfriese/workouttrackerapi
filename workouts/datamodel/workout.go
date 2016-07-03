@@ -5,8 +5,8 @@ import (
 )
 
 type Workout struct {
-	Id        int
-	Timestamp string
-	Lifts     []*liftdatamodel.Lift
-	Name      string
+	Id        int                   `json:"id"`
+	Timestamp string                `json:"timestamp"`
+	Lifts     []*liftdatamodel.Lift `json:"lifts"`
+	Name      string                `json:"name"`
 }

@@ -79,7 +79,7 @@ var _ = Describe("workouts", func() {
 			})
 
 			It("writes all workouts as JSON to the response", func() {
-				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(Equal([]byte(`[{"Id":1234,"Timestamp":"turtle timestamp","Lifts":[{"Id":60,"Name":"lift one","DataTemplate":"dt1","Workout":1234,"Sets":[]},{"Id":61,"Name":"lift two","DataTemplate":"dt2","Workout":1234,"Sets":[]}],"Name":"turtle workout"},{"Id":2345,"Timestamp":"crab timestamp","Lifts":[],"Name":"crab workout"}]`)))
+				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(Equal([]byte(`[{"id":1234,"timestamp":"turtle timestamp","lifts":[{"Id":60,"Name":"lift one","DataTemplate":"dt1","Workout":1234,"Sets":[]},{"Id":61,"Name":"lift two","DataTemplate":"dt2","Workout":1234,"Sets":[]}],"name":"turtle workout"},{"id":2345,"timestamp":"crab timestamp","lifts":[],"name":"crab workout"}]`)))
 			})
 		})
 	})
