@@ -15,12 +15,12 @@ import (
 func ApplicationHandler(db *sql.DB) http.Handler {
 	handler := mux.NewRouter()
 
-	workoutRepository := workoutrepository.NewWorkoutRepository(db)
-	handler.Handle("/workouts", workouts.WorkoutsHandler(workoutRepository))
-
 	setRepository := setrepository.NewSetRepository(db)
 	liftRepository := liftrepository.NewLiftRepository(db, setRepository)
 	handler.Handle("/lifts", lifts.LiftsHandler(liftRepository))
+
+	workoutRepository := workoutrepository.NewWorkoutRepository(db, liftRepository)
+	handler.Handle("/workouts", workouts.WorkoutsHandler(workoutRepository))
 
 	return handler
 }

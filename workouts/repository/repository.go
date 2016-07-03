@@ -3,9 +3,11 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
+
+	"github.com/jwfriese/workouttrackerapi/lifts/repository"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
-	"log"
 )
 
 type WorkoutRepository interface {
@@ -14,12 +16,14 @@ type WorkoutRepository interface {
 }
 
 type workoutRepository struct {
-	connection *sql.DB
+	connection     *sql.DB
+	liftRepository repository.LiftRepository
 }
 
-func NewWorkoutRepository(db *sql.DB) WorkoutRepository {
+func NewWorkoutRepository(db *sql.DB, liftRepository repository.LiftRepository) WorkoutRepository {
 	return &workoutRepository{
-		connection: db,
+		connection:     db,
+		liftRepository: liftRepository,
 	}
 }
 
@@ -35,10 +39,11 @@ func (r *workoutRepository) All() []*datamodel.Workout {
 		var id int
 		var name string
 		var timestamp string
-		var lifts sqlhelpers.SQLStringSlice
+		var liftIds sqlhelpers.UIntSlice
+
 		defer rows.Close()
 		for rows.Next() {
-			err := rows.Scan(&id, &name, &timestamp, &lifts)
+			err := rows.Scan(&id, &name, &timestamp, &liftIds)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -47,7 +52,7 @@ func (r *workoutRepository) All() []*datamodel.Workout {
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
-				Lifts:     lifts.ToStringSlice(),
+				Lifts:     liftIds,
 			})
 		}
 
@@ -69,10 +74,11 @@ func (r *workoutRepository) GetById(id string) *datamodel.Workout {
 		var id int
 		var name string
 		var timestamp string
-		var lifts sqlhelpers.SQLStringSlice
+		var liftIds sqlhelpers.UIntSlice
+
 		defer rows.Close()
 		for rows.Next() {
-			err := rows.Scan(&id, &name, &timestamp, &lifts)
+			err := rows.Scan(&id, &name, &timestamp, &liftIds)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -81,7 +87,7 @@ func (r *workoutRepository) GetById(id string) *datamodel.Workout {
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
-				Lifts:     lifts.ToStringSlice(),
+				Lifts:     liftIds,
 			}
 		}
 	}

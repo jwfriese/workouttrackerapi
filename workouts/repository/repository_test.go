@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"database/sql"
+	"github.com/jwfriese/workouttrackerapi/lifts/repository/repositoryfakes"
 	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 	_ "github.com/lib/pq"
@@ -14,8 +15,9 @@ import (
 
 var _ = Describe("WorkoutRepository", func() {
 	var (
-		subject        repository.WorkoutRepository
-		testConnection *sql.DB
+		subject            repository.WorkoutRepository
+		testConnection     *sql.DB
+		fakeLiftRepository *repositoryfakes.FakeLiftRepository
 	)
 
 	BeforeEach(func() {
@@ -24,7 +26,9 @@ var _ = Describe("WorkoutRepository", func() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		subject = repository.NewWorkoutRepository(testConnection)
+
+		fakeLiftRepository = new(repositoryfakes.FakeLiftRepository)
+		subject = repository.NewWorkoutRepository(testConnection, fakeLiftRepository)
 	})
 
 	Describe("Getting all workouts from the DB", func() {
@@ -43,6 +47,9 @@ var _ = Describe("WorkoutRepository", func() {
 			Expect(firstWorkout.Id).To(Equal(1))
 			Expect(firstWorkout.Name).To(Equal("turtle one"))
 			Expect(len(firstWorkout.Lifts)).To(Equal(3))
+			Expect(firstWorkout.Lifts[0]).To(BeEquivalentTo(1))
+			Expect(firstWorkout.Lifts[1]).To(BeEquivalentTo(2))
+			Expect(firstWorkout.Lifts[2]).To(BeEquivalentTo(3))
 		})
 	})
 
@@ -61,8 +68,8 @@ var _ = Describe("WorkoutRepository", func() {
 				Expect(workout.Id).To(Equal(2))
 				Expect(workout.Name).To(Equal("turtle two"))
 				Expect(len(workout.Lifts)).To(Equal(2))
-				Expect(workout.Lifts[0]).To(Equal("turtle press"))
-				Expect(workout.Lifts[1]).To(Equal("turtle cleans"))
+				Expect(workout.Lifts[0]).To(BeEquivalentTo(4))
+				Expect(workout.Lifts[1]).To(BeEquivalentTo(5))
 			})
 		})
 
