@@ -9,5 +9,5 @@ import (
 
 func TestWorkouts(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Workouts Suite")
+	RunSpecs(t, "Workouts Endpoint Suite")
 }

@@ -9,5 +9,5 @@ import (
 
 func TestLifts(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Lifts Suite")
+	RunSpecs(t, "Lifts Endpoint Suite")
 }
