@@ -5,9 +5,9 @@ import (
 )
 
 type Lift struct {
-	Id           int
-	Name         string
-	DataTemplate string
-	Workout      int
-	Sets         []*datamodel.Set
+	Id           int              `json:"id"`
+	Name         string           `json:"name"`
+	DataTemplate string           `json:"dataTemplate"`
+	Workout      int              `json:"workout"`
+	Sets         []*datamodel.Set `json:"sets"`
 }
