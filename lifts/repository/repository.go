@@ -12,7 +12,7 @@ import (
 
 type LiftRepository interface {
 	All() []*liftdatamodel.Lift
-	GetById(id string) *liftdatamodel.Lift
+	GetById(id int) *liftdatamodel.Lift
 }
 
 type liftRepository struct {
@@ -39,7 +39,7 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 	var name string
 	var workout int
 	var dataTemplate string
-	var setIds sqlhelpers.UIntSlice
+	var setIds sqlhelpers.IntSlice
 
 	defer rows.Close()
 	for rows.Next() {
@@ -66,6 +66,6 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 	return lifts
 }
 
-func (r *liftRepository) GetById(id string) *liftdatamodel.Lift {
+func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
 	return nil
 }

@@ -10,10 +10,10 @@ import (
 )
 
 var _ = Describe("Helpers for numeric types with SQL", func() {
-	Describe("[]uint", func() {
+	Describe("[]int", func() {
 		var (
 			err    error
-			result sqlhelpers.UIntSlice
+			result sqlhelpers.IntSlice
 		)
 
 		BeforeEach(func() {
@@ -25,8 +25,8 @@ var _ = Describe("Helpers for numeric types with SQL", func() {
 			}
 		})
 
-		It("pulls out all of the uints values from the byte slice", func() {
-			Expect(result).To(BeEquivalentTo([]uint{1, 20, 5}))
+		It("pulls out all of the ints values from the byte slice", func() {
+			Expect(result).To(BeEquivalentTo([]int{1, 20, 5}))
 		})
 	})
 })

@@ -6,10 +6,10 @@ import (
 	"strconv"
 )
 
-type UIntSlice []uint
+type IntSlice []int
 
-func (slice *UIntSlice) Scan(src interface{}) error {
-	var newSlice []uint
+func (slice *IntSlice) Scan(src interface{}) error {
+	var newSlice []int
 	srcByteArray, castSuccessful := src.([]byte)
 	if castSuccessful {
 		trimmedByteSlice := bytes.Trim(srcByteArray, "{}")
@@ -17,12 +17,12 @@ func (slice *UIntSlice) Scan(src interface{}) error {
 		for _, numericByteSlice := range numericByteSlices {
 			numberBytes := bytes.Trim(numericByteSlice, "\" ")
 			numberString := string(numberBytes[:])
-			number, err := strconv.ParseUint(numberString, 10, 32)
+			number, err := strconv.ParseInt(numberString, 10, 32)
 			if err != nil {
 				return err
 			}
 
-			newSlice = append(newSlice, uint(number))
+			newSlice = append(newSlice, int(number))
 		}
 
 		*slice = newSlice

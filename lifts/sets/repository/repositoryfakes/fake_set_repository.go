@@ -9,10 +9,10 @@ import (
 )
 
 type FakeSetRepository struct {
-	GetByIdStub        func(id uint) *datamodel.Set
+	GetByIdStub        func(id int) *datamodel.Set
 	getByIdMutex       sync.RWMutex
 	getByIdArgsForCall []struct {
-		id uint
+		id int
 	}
 	getByIdReturns struct {
 		result1 *datamodel.Set
@@ -21,10 +21,10 @@ type FakeSetRepository struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSetRepository) GetById(id uint) *datamodel.Set {
+func (fake *FakeSetRepository) GetById(id int) *datamodel.Set {
 	fake.getByIdMutex.Lock()
 	fake.getByIdArgsForCall = append(fake.getByIdArgsForCall, struct {
-		id uint
+		id int
 	}{id})
 	fake.recordInvocation("GetById", []interface{}{id})
 	fake.getByIdMutex.Unlock()
@@ -41,7 +41,7 @@ func (fake *FakeSetRepository) GetByIdCallCount() int {
 	return len(fake.getByIdArgsForCall)
 }
 
-func (fake *FakeSetRepository) GetByIdArgsForCall(i int) uint {
+func (fake *FakeSetRepository) GetByIdArgsForCall(i int) int {
 	fake.getByIdMutex.RLock()
 	defer fake.getByIdMutex.RUnlock()
 	return fake.getByIdArgsForCall[i].id

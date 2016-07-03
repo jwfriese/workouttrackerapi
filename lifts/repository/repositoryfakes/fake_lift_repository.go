@@ -4,30 +4,30 @@ package repositoryfakes
 import (
 	"sync"
 
-	"github.com/jwfriese/workouttrackerapi/lifts/datamodel"
+	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/lifts/repository"
 )
 
 type FakeLiftRepository struct {
-	AllStub        func() []*datamodel.Lift
+	AllStub        func() []*liftdatamodel.Lift
 	allMutex       sync.RWMutex
 	allArgsForCall []struct{}
 	allReturns     struct {
-		result1 []*datamodel.Lift
+		result1 []*liftdatamodel.Lift
 	}
-	GetByIdStub        func(id string) *datamodel.Lift
+	GetByIdStub        func(id int) *liftdatamodel.Lift
 	getByIdMutex       sync.RWMutex
 	getByIdArgsForCall []struct {
-		id string
+		id int
 	}
 	getByIdReturns struct {
-		result1 *datamodel.Lift
+		result1 *liftdatamodel.Lift
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLiftRepository) All() []*datamodel.Lift {
+func (fake *FakeLiftRepository) All() []*liftdatamodel.Lift {
 	fake.allMutex.Lock()
 	fake.allArgsForCall = append(fake.allArgsForCall, struct{}{})
 	fake.recordInvocation("All", []interface{}{})
@@ -45,17 +45,17 @@ func (fake *FakeLiftRepository) AllCallCount() int {
 	return len(fake.allArgsForCall)
 }
 
-func (fake *FakeLiftRepository) AllReturns(result1 []*datamodel.Lift) {
+func (fake *FakeLiftRepository) AllReturns(result1 []*liftdatamodel.Lift) {
 	fake.AllStub = nil
 	fake.allReturns = struct {
-		result1 []*datamodel.Lift
+		result1 []*liftdatamodel.Lift
 	}{result1}
 }
 
-func (fake *FakeLiftRepository) GetById(id string) *datamodel.Lift {
+func (fake *FakeLiftRepository) GetById(id int) *liftdatamodel.Lift {
 	fake.getByIdMutex.Lock()
 	fake.getByIdArgsForCall = append(fake.getByIdArgsForCall, struct {
-		id string
+		id int
 	}{id})
 	fake.recordInvocation("GetById", []interface{}{id})
 	fake.getByIdMutex.Unlock()
@@ -72,16 +72,16 @@ func (fake *FakeLiftRepository) GetByIdCallCount() int {
 	return len(fake.getByIdArgsForCall)
 }
 
-func (fake *FakeLiftRepository) GetByIdArgsForCall(i int) string {
+func (fake *FakeLiftRepository) GetByIdArgsForCall(i int) int {
 	fake.getByIdMutex.RLock()
 	defer fake.getByIdMutex.RUnlock()
 	return fake.getByIdArgsForCall[i].id
 }
 
-func (fake *FakeLiftRepository) GetByIdReturns(result1 *datamodel.Lift) {
+func (fake *FakeLiftRepository) GetByIdReturns(result1 *liftdatamodel.Lift) {
 	fake.GetByIdStub = nil
 	fake.getByIdReturns = struct {
-		result1 *datamodel.Lift
+		result1 *liftdatamodel.Lift
 	}{result1}
 }
 

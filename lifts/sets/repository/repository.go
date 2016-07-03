@@ -9,7 +9,7 @@ import (
 )
 
 type SetRepository interface {
-	GetById(id uint) *datamodel.Set
+	GetById(id int) *datamodel.Set
 }
 
 type setRepository struct {
@@ -22,7 +22,7 @@ func NewSetRepository(connection *sql.DB) SetRepository {
 	}
 }
 
-func (r *setRepository) GetById(id uint) *datamodel.Set {
+func (r *setRepository) GetById(id int) *datamodel.Set {
 	queryString := fmt.Sprintf("SELECT * FROM sets WHERE id = %v", id)
 	row := r.connection.QueryRow(queryString)
 

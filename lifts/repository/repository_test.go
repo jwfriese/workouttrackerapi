@@ -71,7 +71,7 @@ var _ = Describe("LiftRepository", func() {
 				Reps:          nil,
 			}
 
-			fakeSetRepository.GetByIdStub = func(id uint) *setdatamodel.Set {
+			fakeSetRepository.GetByIdStub = func(id int) *setdatamodel.Set {
 				if id == 10 {
 					return turtleSet
 				} else if id == 11 {

@@ -4,30 +4,30 @@ package repositoryfakes
 import (
 	"sync"
 
-	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
+	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 )
 
 type FakeWorkoutRepository struct {
-	AllStub        func() []*datamodel.Workout
+	AllStub        func() []*workoutdatamodel.Workout
 	allMutex       sync.RWMutex
 	allArgsForCall []struct{}
 	allReturns     struct {
-		result1 []*datamodel.Workout
+		result1 []*workoutdatamodel.Workout
 	}
-	GetByIdStub        func(id string) *datamodel.Workout
+	GetByIdStub        func(id int) *workoutdatamodel.Workout
 	getByIdMutex       sync.RWMutex
 	getByIdArgsForCall []struct {
-		id string
+		id int
 	}
 	getByIdReturns struct {
-		result1 *datamodel.Workout
+		result1 *workoutdatamodel.Workout
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeWorkoutRepository) All() []*datamodel.Workout {
+func (fake *FakeWorkoutRepository) All() []*workoutdatamodel.Workout {
 	fake.allMutex.Lock()
 	fake.allArgsForCall = append(fake.allArgsForCall, struct{}{})
 	fake.recordInvocation("All", []interface{}{})
@@ -45,17 +45,17 @@ func (fake *FakeWorkoutRepository) AllCallCount() int {
 	return len(fake.allArgsForCall)
 }
 
-func (fake *FakeWorkoutRepository) AllReturns(result1 []*datamodel.Workout) {
+func (fake *FakeWorkoutRepository) AllReturns(result1 []*workoutdatamodel.Workout) {
 	fake.AllStub = nil
 	fake.allReturns = struct {
-		result1 []*datamodel.Workout
+		result1 []*workoutdatamodel.Workout
 	}{result1}
 }
 
-func (fake *FakeWorkoutRepository) GetById(id string) *datamodel.Workout {
+func (fake *FakeWorkoutRepository) GetById(id int) *workoutdatamodel.Workout {
 	fake.getByIdMutex.Lock()
 	fake.getByIdArgsForCall = append(fake.getByIdArgsForCall, struct {
-		id string
+		id int
 	}{id})
 	fake.recordInvocation("GetById", []interface{}{id})
 	fake.getByIdMutex.Unlock()
@@ -72,16 +72,16 @@ func (fake *FakeWorkoutRepository) GetByIdCallCount() int {
 	return len(fake.getByIdArgsForCall)
 }
 
-func (fake *FakeWorkoutRepository) GetByIdArgsForCall(i int) string {
+func (fake *FakeWorkoutRepository) GetByIdArgsForCall(i int) int {
 	fake.getByIdMutex.RLock()
 	defer fake.getByIdMutex.RUnlock()
 	return fake.getByIdArgsForCall[i].id
 }
 
-func (fake *FakeWorkoutRepository) GetByIdReturns(result1 *datamodel.Workout) {
+func (fake *FakeWorkoutRepository) GetByIdReturns(result1 *workoutdatamodel.Workout) {
 	fake.GetByIdStub = nil
 	fake.getByIdReturns = struct {
-		result1 *datamodel.Workout
+		result1 *workoutdatamodel.Workout
 	}{result1}
 }
 

@@ -5,41 +5,42 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jwfriese/workouttrackerapi/lifts/repository"
+	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
+	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
-	"github.com/jwfriese/workouttrackerapi/workouts/datamodel"
+	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 )
 
 type WorkoutRepository interface {
-	All() []*datamodel.Workout
-	GetById(id string) *datamodel.Workout
+	All() []*workoutdatamodel.Workout
+	GetById(id int) *workoutdatamodel.Workout
 }
 
 type workoutRepository struct {
 	connection     *sql.DB
-	liftRepository repository.LiftRepository
+	liftRepository liftrepository.LiftRepository
 }
 
-func NewWorkoutRepository(db *sql.DB, liftRepository repository.LiftRepository) WorkoutRepository {
+func NewWorkoutRepository(db *sql.DB, liftRepository liftrepository.LiftRepository) WorkoutRepository {
 	return &workoutRepository{
 		connection:     db,
 		liftRepository: liftRepository,
 	}
 }
 
-func (r *workoutRepository) All() []*datamodel.Workout {
+func (r *workoutRepository) All() []*workoutdatamodel.Workout {
 	if r.connection != nil {
 		rows, err := r.connection.Query("SELECT * FROM workouts")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		workouts := []*datamodel.Workout{}
+		workouts := []*workoutdatamodel.Workout{}
 
 		var id int
 		var name string
 		var timestamp string
-		var liftIds sqlhelpers.UIntSlice
+		var liftIds sqlhelpers.IntSlice
 
 		defer rows.Close()
 		for rows.Next() {
@@ -48,11 +49,17 @@ func (r *workoutRepository) All() []*datamodel.Workout {
 				log.Fatal(err)
 			}
 
-			workouts = append(workouts, &datamodel.Workout{
+			var lifts []*liftdatamodel.Lift
+			for _, liftId := range liftIds {
+				lift := r.liftRepository.GetById(liftId)
+				lifts = append(lifts, lift)
+			}
+
+			workouts = append(workouts, &workoutdatamodel.Workout{
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
-				Lifts:     liftIds,
+				Lifts:     lifts,
 			})
 		}
 
@@ -62,9 +69,9 @@ func (r *workoutRepository) All() []*datamodel.Workout {
 	return nil
 }
 
-func (r *workoutRepository) GetById(id string) *datamodel.Workout {
+func (r *workoutRepository) GetById(id int) *workoutdatamodel.Workout {
 	if r.connection != nil {
-		query := fmt.Sprintf("SELECT * FROM workouts WHERE id = %s", id)
+		query := fmt.Sprintf("SELECT * FROM workouts WHERE id = %v", id)
 		rows, err := r.connection.Query(query)
 
 		if err != nil {
@@ -74,7 +81,7 @@ func (r *workoutRepository) GetById(id string) *datamodel.Workout {
 		var id int
 		var name string
 		var timestamp string
-		var liftIds sqlhelpers.UIntSlice
+		var liftIds sqlhelpers.IntSlice
 
 		defer rows.Close()
 		for rows.Next() {
@@ -83,11 +90,17 @@ func (r *workoutRepository) GetById(id string) *datamodel.Workout {
 				log.Fatal(err)
 			}
 
-			return &datamodel.Workout{
+			var lifts []*liftdatamodel.Lift
+			for _, liftId := range liftIds {
+				lift := r.liftRepository.GetById(liftId)
+				lifts = append(lifts, lift)
+			}
+
+			return &workoutdatamodel.Workout{
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
-				Lifts:     liftIds,
+				Lifts:     lifts,
 			}
 		}
 	}
