@@ -41,35 +41,9 @@ var _ = Describe("LiftRepository", func() {
 		)
 
 		BeforeEach(func() {
-			turtleSet = &setdatamodel.Set{
-				Id:            777,
-				DataTemplate:  "weight/reps",
-				Lift:          4,
-				Weight:        nil,
-				Height:        nil,
-				TimeInSeconds: nil,
-				Reps:          nil,
-			}
-
-			crabSet = &setdatamodel.Set{
-				Id:            888,
-				DataTemplate:  "weight/reps",
-				Lift:          4,
-				Weight:        nil,
-				Height:        nil,
-				TimeInSeconds: nil,
-				Reps:          nil,
-			}
-
-			puppySet = &setdatamodel.Set{
-				Id:            999,
-				DataTemplate:  "weight/reps",
-				Lift:          4,
-				Weight:        nil,
-				Height:        nil,
-				TimeInSeconds: nil,
-				Reps:          nil,
-			}
+			turtleSet = &setdatamodel.Set{}
+			crabSet = &setdatamodel.Set{}
+			puppySet = &setdatamodel.Set{}
 
 			fakeSetRepository.GetByIdStub = func(id int) *setdatamodel.Set {
 				if id == 10 {
@@ -93,9 +67,9 @@ var _ = Describe("LiftRepository", func() {
 			Expect(lifts[3].Id).To(Equal(4))
 
 			Expect(len(lifts[3].Sets)).To(Equal(3))
-			Expect(lifts[3].Sets[0].Id).To(Equal(777))
-			Expect(lifts[3].Sets[1].Id).To(Equal(888))
-			Expect(lifts[3].Sets[2].Id).To(Equal(999))
+			Expect(lifts[3].Sets[0]).To(BeIdenticalTo(turtleSet))
+			Expect(lifts[3].Sets[1]).To(BeIdenticalTo(crabSet))
+			Expect(lifts[3].Sets[2]).To(BeIdenticalTo(puppySet))
 		})
 	})
 })
