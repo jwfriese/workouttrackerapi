@@ -4,8 +4,8 @@ type Set struct {
 	Id            int      `json:"-"`
 	DataTemplate  string   `json:"-"`
 	Lift          int      `json:"-"`
-	Weight        *float32 `json:"Weight,omitempty"`
-	Height        *float32 `json:"Height,omitempty"`
-	TimeInSeconds *float32 `json:"TimeInSeconds,omitempty"`
-	Reps          *int     `json:"Reps,omitempty"`
+	Weight        *float32 `json:"weight,omitempty"`
+	Height        *float32 `json:"height,omitempty"`
+	TimeInSeconds *float32 `json:"timeInSeconds,omitempty"`
+	Reps          *int     `json:"reps,omitempty"`
 }

@@ -111,7 +111,7 @@ var _ = Describe("lifts", func() {
 			})
 
 			It("writes all lift data to the response", func() {
-				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(Equal([]byte(`[{"id":1234,"name":"turtle press","dataTemplate":"Weight/Reps","workout":1234567,"sets":[{"Weight":123.4,"Reps":10},{"Weight":234.5,"Reps":6}]},{"id":2345,"name":"turtle box jump","dataTemplate":"Height/Reps","workout":7654321,"sets":[{"Height":36,"Reps":8},{"Height":42,"Reps":10}]}]`)))
+				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(Equal([]byte(`[{"id":1234,"name":"turtle press","dataTemplate":"Weight/Reps","workout":1234567,"sets":[{"weight":123.4,"reps":10},{"weight":234.5,"reps":6}]},{"id":2345,"name":"turtle box jump","dataTemplate":"Height/Reps","workout":7654321,"sets":[{"height":36,"reps":8},{"height":42,"reps":10}]}]`)))
 			})
 		})
 	})
