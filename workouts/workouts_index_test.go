@@ -3,9 +3,9 @@ package workouts_test
 import (
 	"net/http"
 
-	"github.com/jwfriese/workouttrackerapi/httpfakes"
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	setdatamodel "github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
+	"github.com/jwfriese/workouttrackerapi/test/http/httpfakes"
 	"github.com/jwfriese/workouttrackerapi/workouts"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/workouts/repository/repositoryfakes"

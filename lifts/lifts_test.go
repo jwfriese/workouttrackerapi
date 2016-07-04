@@ -3,11 +3,11 @@ package lifts_test
 import (
 	"net/http"
 
-	"github.com/jwfriese/workouttrackerapi/httpfakes"
 	"github.com/jwfriese/workouttrackerapi/lifts"
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/lifts/repository/repositoryfakes"
 	setdatamodel "github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
+	"github.com/jwfriese/workouttrackerapi/test/http/httpfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
