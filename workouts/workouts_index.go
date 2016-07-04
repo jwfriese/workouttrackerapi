@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func WorkoutsHandler(r repository.WorkoutRepository) http.Handler {
+func WorkoutsIndexHandler(r repository.WorkoutRepository) http.Handler {
 	return &workoutEndpoint{
 		repository: r,
 	}

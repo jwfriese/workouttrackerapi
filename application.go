@@ -20,7 +20,7 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 	handler.Handle("/lifts", lifts.LiftsHandler(liftRepository))
 
 	workoutRepository := workoutrepository.NewWorkoutRepository(db, liftRepository)
-	handler.Handle("/workouts", workouts.WorkoutsHandler(workoutRepository))
+	handler.Handle("/workouts", workouts.WorkoutsIndexHandler(workoutRepository))
 
 	return handler
 }

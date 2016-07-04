@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("workouts", func() {
+var _ = Describe("/workouts", func() {
 	Describe("its index handler", func() {
 		var (
 			handler               http.Handler
@@ -26,11 +26,7 @@ var _ = Describe("workouts", func() {
 
 		BeforeEach(func() {
 			fakeWorkoutRepository = new(repositoryfakes.FakeWorkoutRepository)
-			handler = workouts.WorkoutsHandler(fakeWorkoutRepository)
-		})
-
-		It("returns a handler", func() {
-			Expect(handler).ToNot(BeNil())
+			handler = workouts.WorkoutsIndexHandler(fakeWorkoutRepository)
 		})
 
 		Describe("JSON served from index", func() {
