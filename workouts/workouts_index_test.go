@@ -15,7 +15,7 @@ import (
 )
 
 var _ = Describe("/workouts", func() {
-	Describe("its index handler", func() {
+	Describe("GET", func() {
 		var (
 			handler               http.Handler
 			fakeResponseWriter    *httpfakes.FakeResponseWriter

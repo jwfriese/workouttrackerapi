@@ -13,6 +13,11 @@ func (slice *IntSlice) Scan(src interface{}) error {
 	srcByteArray, castSuccessful := src.([]byte)
 	if castSuccessful {
 		trimmedByteSlice := bytes.Trim(srcByteArray, "{}")
+		if len(trimmedByteSlice) == 0 {
+			*slice = []int{}
+			return nil
+		}
+
 		numericByteSlices := bytes.Split(trimmedByteSlice, []byte(","))
 		for _, numericByteSlice := range numericByteSlices {
 			numberBytes := bytes.Trim(numericByteSlice, "\" ")

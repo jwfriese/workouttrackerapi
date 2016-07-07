@@ -6,11 +6,11 @@ import (
 )
 
 func TestHost() string {
-	return "localhost"
+	return "http://localhost"
 }
 
 func TestPort() int {
-	return 8080
+	return 8181
 }
 
 func CreateFullTestURLForEndpoint(endpoint string) string {

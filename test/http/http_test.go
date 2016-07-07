@@ -19,7 +19,7 @@ var _ = Describe("http", func() {
 			})
 
 			It("builds the valid URL", func() {
-				Expect(fullURL).To(Equal("localhost:8080/testendpoint"))
+				Expect(fullURL).To(Equal("http://localhost:8181/testendpoint"))
 			})
 		})
 
@@ -29,7 +29,7 @@ var _ = Describe("http", func() {
 			})
 
 			It("builds the valid URL, inserting the needed forward slash", func() {
-				Expect(fullURL).To(Equal("localhost:8080/testendpoint"))
+				Expect(fullURL).To(Equal("http://localhost:8181/testendpoint"))
 			})
 		})
 	})

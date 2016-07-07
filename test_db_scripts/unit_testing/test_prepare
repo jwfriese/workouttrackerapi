@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR
+
+psql -lt | cut -d \| -f 1 | grep workout_tracker_unit_test >/dev/null
+UNIT_TEST_DATABASE_EXISTS=$?
+
+if [ $UNIT_TEST_DATABASE_EXISTS -eq 0 ]; then
+        echo -e "\nUnit testing database exists. Cleaning...\n"
+        psql -d postgres -U postgres -c 'DROP DATABASE workout_tracker_unit_test' 
+fi
+
+createdb -U postgres workout_tracker_unit_test
+CREATE_SUCCESSFUL=$?
+if [ $CREATE_SUCCESSFUL -eq 0 ]; then
+        echo -e "Unit testing database created\n"
+else
+        echo -e "Failed to create unit testing database\n"
+        exit
+fi
+
+echo -e "\nInitializing unit test database...\n"
+
+psql -d workout_tracker_unit_test -U postgres -f initialize_workouts.sql
+psql -d workout_tracker_unit_test -U postgres -f initialize_lifts.sql
+

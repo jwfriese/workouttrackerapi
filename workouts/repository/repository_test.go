@@ -23,7 +23,7 @@ var _ = Describe("WorkoutRepository", func() {
 
 	BeforeEach(func() {
 		var err error
-		testConnection, err = sql.Open("postgres", "user=postgres dbname=workout_tracker_test sslmode=disable")
+		testConnection, err = sql.Open("postgres", "user=postgres dbname=workout_tracker_unit_test sslmode=disable")
 		if err != nil {
 			log.Fatal(err)
 		}

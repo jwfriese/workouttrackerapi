@@ -49,7 +49,7 @@ func (r *workoutRepository) All() []*workoutdatamodel.Workout {
 				log.Fatal(err)
 			}
 
-			var lifts []*liftdatamodel.Lift
+			lifts := []*liftdatamodel.Lift{}
 			for _, liftId := range liftIds {
 				lift := r.liftRepository.GetById(liftId)
 				lifts = append(lifts, lift)
@@ -90,7 +90,7 @@ func (r *workoutRepository) GetById(id int) *workoutdatamodel.Workout {
 				log.Fatal(err)
 			}
 
-			var lifts []*liftdatamodel.Lift
+			lifts := []*liftdatamodel.Lift{}
 			for _, liftId := range liftIds {
 				lift := r.liftRepository.GetById(liftId)
 				lifts = append(lifts, lift)

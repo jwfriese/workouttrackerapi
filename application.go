@@ -22,5 +22,7 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 	workoutRepository := workoutrepository.NewWorkoutRepository(db, liftRepository)
 	handler.Handle("/workouts", workouts.WorkoutsIndexHandler(workoutRepository))
 
+	handler.Handle(workouts.WorkoutsShowEndpoint(), workouts.WorkoutsShowHandler(workoutRepository))
+
 	return handler
 }
