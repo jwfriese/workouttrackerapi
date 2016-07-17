@@ -2,15 +2,15 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"log"
 
 	"github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 )
 
 type SetRepository interface {
-	GetById(id int) *datamodel.Set
+	GetById(id int) (*datamodel.Set, error)
 	Insert(set *datamodel.Set) (int, error)
 }
 
@@ -24,7 +24,7 @@ func NewSetRepository(connection *sql.DB) SetRepository {
 	}
 }
 
-func (r *setRepository) GetById(id int) *datamodel.Set {
+func (r *setRepository) GetById(id int) (*datamodel.Set, error) {
 	queryString := fmt.Sprintf("SELECT * FROM sets WHERE id = %v", id)
 	row := r.connection.QueryRow(queryString)
 
@@ -38,11 +38,15 @@ func (r *setRepository) GetById(id int) *datamodel.Set {
 		nullableReps          sql.NullInt64
 	)
 
-	var err error
-	err = row.Scan(&setId, &dataTemplate, &lift, &nullableWeight, &nullableHeight, &nullableTimeInSeconds, &nullableReps)
+	err := row.Scan(&setId, &dataTemplate, &lift, &nullableWeight, &nullableHeight, &nullableTimeInSeconds, &nullableReps)
+
+	if err == sql.ErrNoRows {
+		noSetErrString := fmt.Sprintf("Set with id=%v does not exist", id)
+		return nil, errors.New(noSetErrString)
+	}
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var weight *float32
@@ -69,7 +73,7 @@ func (r *setRepository) GetById(id int) *datamodel.Set {
 		(*reps) = int(nullableReps.Int64)
 	}
 
-	return &datamodel.Set{
+	set := &datamodel.Set{
 		Id:            setId,
 		DataTemplate:  dataTemplate,
 		Lift:          lift,
@@ -78,6 +82,8 @@ func (r *setRepository) GetById(id int) *datamodel.Set {
 		TimeInSeconds: timeInSeconds,
 		Reps:          reps,
 	}
+
+	return set, nil
 }
 
 func (r *setRepository) Insert(set *datamodel.Set) (int, error) {

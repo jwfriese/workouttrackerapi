@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -78,18 +79,18 @@ var _ = Describe("LiftRepository", func() {
 			puppySet = &setdatamodel.Set{}
 			kittenSet = &setdatamodel.Set{}
 
-			fakeSetRepository.GetByIdStub = func(id int) *setdatamodel.Set {
+			fakeSetRepository.GetByIdStub = func(id int) (*setdatamodel.Set, error) {
 				if id == 1 {
-					return turtleSet
+					return turtleSet, nil
 				} else if id == 2 {
-					return crabSet
+					return crabSet, nil
 				} else if id == 3 {
-					return puppySet
+					return puppySet, nil
 				} else if id == 4 {
-					return kittenSet
+					return kittenSet, nil
 				}
 
-				return nil
+				return nil, nil
 			}
 		})
 
@@ -158,6 +159,26 @@ var _ = Describe("LiftRepository", func() {
 
 				It("returns no result", func() {
 					Expect(result).To(BeNil())
+				})
+			})
+
+			Context("When the set repository errors during a fetch", func() {
+				BeforeEach(func() {
+					fakeSetRepository.GetByIdStub = func(id int) (*setdatamodel.Set, error) {
+						errString := fmt.Sprintf("Error fetching set (id=%v)", id)
+						return nil, errors.New(errString)
+					}
+
+					result, err = subject.GetById(2)
+				})
+
+				It("returns no lift", func() {
+					Expect(result).To(BeNil())
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Error fetching lift (id=2): Error fetching set (id=3)"))
 				})
 			})
 		})

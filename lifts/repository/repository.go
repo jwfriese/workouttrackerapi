@@ -53,7 +53,7 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 
 		var sets []*setdatamodel.Set
 		for _, setId := range setIds {
-			set := r.setRepository.GetById(setId)
+			set, _ := r.setRepository.GetById(setId)
 			sets = append(sets, set)
 		}
 
@@ -92,7 +92,12 @@ func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 
 	var sets []*setdatamodel.Set
 	for _, setId := range setIds {
-		set := r.setRepository.GetById(setId)
+		set, setErr := r.setRepository.GetById(setId)
+		if setErr != nil {
+			setErrString := fmt.Sprintf("Error fetching lift (id=%v): %s", id, setErr.Error())
+			return nil, errors.New(setErrString)
+		}
+
 		sets = append(sets, set)
 	}
 

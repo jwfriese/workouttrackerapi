@@ -9,13 +9,14 @@ import (
 )
 
 type FakeSetRepository struct {
-	GetByIdStub        func(id int) *datamodel.Set
+	GetByIdStub        func(id int) (*datamodel.Set, error)
 	getByIdMutex       sync.RWMutex
 	getByIdArgsForCall []struct {
 		id int
 	}
 	getByIdReturns struct {
 		result1 *datamodel.Set
+		result2 error
 	}
 	InsertStub        func(set *datamodel.Set) (int, error)
 	insertMutex       sync.RWMutex
@@ -30,7 +31,7 @@ type FakeSetRepository struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSetRepository) GetById(id int) *datamodel.Set {
+func (fake *FakeSetRepository) GetById(id int) (*datamodel.Set, error) {
 	fake.getByIdMutex.Lock()
 	fake.getByIdArgsForCall = append(fake.getByIdArgsForCall, struct {
 		id int
@@ -40,7 +41,7 @@ func (fake *FakeSetRepository) GetById(id int) *datamodel.Set {
 	if fake.GetByIdStub != nil {
 		return fake.GetByIdStub(id)
 	} else {
-		return fake.getByIdReturns.result1
+		return fake.getByIdReturns.result1, fake.getByIdReturns.result2
 	}
 }
 
@@ -56,11 +57,12 @@ func (fake *FakeSetRepository) GetByIdArgsForCall(i int) int {
 	return fake.getByIdArgsForCall[i].id
 }
 
-func (fake *FakeSetRepository) GetByIdReturns(result1 *datamodel.Set) {
+func (fake *FakeSetRepository) GetByIdReturns(result1 *datamodel.Set, result2 error) {
 	fake.GetByIdStub = nil
 	fake.getByIdReturns = struct {
 		result1 *datamodel.Set
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeSetRepository) Insert(set *datamodel.Set) (int, error) {

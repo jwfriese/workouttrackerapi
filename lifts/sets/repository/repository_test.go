@@ -62,22 +62,44 @@ var _ = Describe("SetRepository", func() {
 	Describe("Getting a set from the database by its id", func() {
 		var (
 			set *datamodel.Set
+			err error
 		)
 
-		BeforeEach(func() {
-			set = subject.GetById(1)
+		Context("When a set with the given id exists in the database", func() {
+			BeforeEach(func() {
+				set, err = subject.GetById(1)
+			})
+
+			It("returns no error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("creates a set model and returns it", func() {
+				Expect(set.Id).To(Equal(1))
+				Expect(set.DataTemplate).To(Equal("weight/reps"))
+				Expect(set.Lift).To(Equal(15))
+				Expect(set.Weight).ToNot(BeNil())
+				Expect(*(set.Weight)).To(BeEquivalentTo(100.0))
+				Expect(set.Height).To(BeNil())
+				Expect(set.TimeInSeconds).To(BeNil())
+				Expect(set.Reps).ToNot(BeNil())
+				Expect(*(set.Reps)).To(Equal(10))
+			})
 		})
 
-		It("creates a set model and returns it", func() {
-			Expect(set.Id).To(Equal(1))
-			Expect(set.DataTemplate).To(Equal("weight/reps"))
-			Expect(set.Lift).To(Equal(15))
-			Expect(set.Weight).ToNot(BeNil())
-			Expect(*(set.Weight)).To(BeEquivalentTo(100.0))
-			Expect(set.Height).To(BeNil())
-			Expect(set.TimeInSeconds).To(BeNil())
-			Expect(set.Reps).ToNot(BeNil())
-			Expect(*(set.Reps)).To(Equal(10))
+		Context("When no set with the given id exists in the database", func() {
+			BeforeEach(func() {
+				set, err = subject.GetById(1000)
+			})
+
+			It("returns no set", func() {
+				Expect(set).To(BeNil())
+			})
+
+			It("returns a descriptive error message", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Set with id=1000 does not exist"))
+			})
 		})
 	})
 
