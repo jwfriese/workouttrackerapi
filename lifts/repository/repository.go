@@ -7,21 +7,22 @@ import (
 
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	setdatamodel "github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
-	"github.com/jwfriese/workouttrackerapi/lifts/sets/repository"
+	setrepository "github.com/jwfriese/workouttrackerapi/lifts/sets/repository"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 )
 
 type LiftRepository interface {
 	All() []*liftdatamodel.Lift
 	GetById(id int) *liftdatamodel.Lift
+	Insert(*liftdatamodel.Lift) (int, error)
 }
 
 type liftRepository struct {
-	setRepository repository.SetRepository
+	setRepository setrepository.SetRepository
 	connection    *sql.DB
 }
 
-func NewLiftRepository(connection *sql.DB, repository repository.SetRepository) LiftRepository {
+func NewLiftRepository(connection *sql.DB, repository setrepository.SetRepository) LiftRepository {
 	return &liftRepository{
 		setRepository: repository,
 		connection:    connection,
@@ -99,4 +100,30 @@ func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
 		DataTemplate: dataTemplate,
 		Sets:         sets,
 	}
+}
+
+func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
+	var setIds sqlhelpers.IntSlice
+	for _, set := range newLift.Sets {
+		setId, _ := r.setRepository.Insert(set)
+		setIds = append(setIds, setId)
+	}
+
+	insertQuery := fmt.Sprintf("INSERT INTO lifts (name,workout,data_template,sets) VALUES ('%v',%v,'%v','%v') RETURNING id", newLift.Name, newLift.Workout, newLift.DataTemplate, setIds.ToString())
+	rows, err := r.connection.Query(insertQuery)
+	if err != nil {
+		return -1, err
+	}
+
+	defer rows.Close()
+	rows.Next()
+
+	var createdId int
+	err = rows.Scan(&createdId)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return createdId, nil
 }
