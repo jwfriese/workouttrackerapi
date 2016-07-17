@@ -74,7 +74,7 @@ var _ = Describe("POST /workouts", func() {
 			responseBody, err := ioutil.ReadAll(response.Body)
 			response.Body.Close()
 			Expect(err).To(BeNil())
-			Expect(responseBody).To(Equal([]byte(`{"id":4,"name":"turtle abs workout","timestamp":"2016-04-25T10:12:56-08:00","lifts":"{{"id":6,"name":"turtle crunches","workout":4,"dataTemplate":"weight/reps","sets":"{{"id":16,"dataTemplate":"weight/reps","lift":6,"weight":0,"reps":25},{"id":17,"dataTemplate":"weight/reps","lift":6,"weight":0,"reps":35}}"},{"id":7,"name":"turtle hollow hold","workout":4,"dataTemplate":"timeInSeconds","sets":"{{"id":18,"dataTemplate":"timeInSeconds","lift":7,"timeInSeconds":65.5},{"id":19,"dataTemplate":"timeInSeconds","lift":7,"timeInSeconds":70}}"},{"id":8,"name":"turtle step-ups","workout":4,"dataTemplate":"height/reps","sets":"{{"id":20,"dataTemplate":"height/reps","lift":8,"height":36,"reps":50}}"}}"}`)))
+			Expect(responseBody).To(MatchJSON([]byte(`{"id":4,"timestamp":"2016-04-25T11:12:56-07:00","lifts":[{"id":6,"name":"turtle crunches","workout":4,"dataTemplate":"weight/reps","sets":[{"weight":0,"reps":25},{"weight":0,"reps":35}]},{"id":7,"name":"turtle hollow hold","workout":4,"dataTemplate":"timeInSeconds","sets":[{"timeInSeconds":65.5},{"timeInSeconds":70}]},{"id":8,"name":"turtle step-ups","workout":4,"dataTemplate":"height/reps","sets":[{"height":36,"reps":50}]}],"name":"turtle abs workout"}`)))
 		})
 	})
 })

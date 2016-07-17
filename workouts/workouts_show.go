@@ -32,7 +32,7 @@ func (h *workoutsShowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		log.Fatal(err)
 	}
 
-	workout := h.repository.GetById(id)
+	workout, _ := h.repository.GetById(id)
 	if workout == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -46,7 +46,11 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 	writer.WriteHeader(http.StatusCreated)
 
-	createdWorkout := handler.repository.GetById(createdWorkoutId)
+	createdWorkout, workoutFetchErr := handler.repository.GetById(createdWorkoutId)
+	if workoutFetchErr != nil {
+		log.Fatal(workoutFetchErr)
+	}
+
 	createdWorkoutJSON, marshalErr := json.Marshal(&createdWorkout)
 	if marshalErr != nil {
 		log.Fatal(marshalErr)
