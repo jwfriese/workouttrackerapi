@@ -140,7 +140,7 @@ var _ = Describe("WorkoutRepository", func() {
 					workout = subject.GetById(100)
 				})
 
-				It("returns nil", func() {
+				It("returns nil workout", func() {
 					Expect(workout).To(BeNil())
 				})
 			})
@@ -207,14 +207,6 @@ var _ = Describe("WorkoutRepository", func() {
 		It("passes the lifts along to the lift repository to be inserted in there", func() {
 			Expect(fakeLiftRepository.InsertArgsForCall(0)).To(BeIdenticalTo(turtleLift))
 			Expect(fakeLiftRepository.InsertArgsForCall(1)).To(BeIdenticalTo(crabLift))
-		})
-
-		It("sets its created id as the workout id of each created lift", func() {
-			firstUpdatedSet := fakeLiftRepository.UpdateArgsForCall(0)
-			Expect(firstUpdatedSet.Workout).To(Equal(3))
-
-			secondUpdatedSet := fakeLiftRepository.UpdateArgsForCall(1)
-			Expect(secondUpdatedSet.Workout).To(Equal(3))
 		})
 	})
 })

@@ -98,12 +98,14 @@ func (r *workoutRepository) GetById(id int) *workoutdatamodel.Workout {
 				lifts = append(lifts, lift)
 			}
 
-			return &workoutdatamodel.Workout{
+			workout := &workoutdatamodel.Workout{
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
 				Lifts:     lifts,
 			}
+
+			return workout
 		}
 	}
 
