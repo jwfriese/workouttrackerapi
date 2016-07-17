@@ -120,7 +120,7 @@ var _ = Describe("SetRepository", func() {
 			*reps = 8
 			set := &datamodel.Set{
 				Id:            -1,
-				DataTemplate:  "time_in_seconds",
+				DataTemplate:  "timeInSeconds",
 				Lift:          54,
 				Weight:        weight,
 				Height:        height,
@@ -154,7 +154,7 @@ var _ = Describe("SetRepository", func() {
 
 			Expect(scanErr).To(BeNil())
 			Expect(id).To(Equal(3))
-			Expect(dataTemplate).To(Equal("time_in_seconds"))
+			Expect(dataTemplate).To(Equal("timeInSeconds"))
 			Expect(lift).To(Equal(54))
 
 			weightValue, weightErr := weight.Value()

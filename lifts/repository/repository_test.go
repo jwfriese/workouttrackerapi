@@ -215,7 +215,7 @@ var _ = Describe("LiftRepository", func() {
 					Id:           -1,
 					Name:         "turtle hang cleans",
 					Workout:      25,
-					DataTemplate: "time_in_seconds",
+					DataTemplate: "timeInSeconds",
 					Sets:         sets,
 				}
 
@@ -246,7 +246,7 @@ var _ = Describe("LiftRepository", func() {
 				Expect(liftId).To(Equal(3))
 				Expect(name).To(Equal("turtle hang cleans"))
 				Expect(workout).To(Equal(25))
-				Expect(dataTemplate).To(Equal("time_in_seconds"))
+				Expect(dataTemplate).To(Equal("timeInSeconds"))
 
 				Expect(len(setIds)).To(Equal(2))
 				Expect(setIds[0]).To(Equal(35))
@@ -277,7 +277,7 @@ var _ = Describe("LiftRepository", func() {
 					Id:           -1,
 					Name:         "turtle hang cleans",
 					Workout:      25,
-					DataTemplate: "time_in_seconds",
+					DataTemplate: "timeInSeconds",
 					Sets:         sets,
 				}
 
