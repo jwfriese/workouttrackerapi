@@ -190,76 +190,108 @@ var _ = Describe("LiftRepository", func() {
 			err       error
 			setOne    *setdatamodel.Set
 			setTwo    *setdatamodel.Set
+			sets      []*setdatamodel.Set
 		)
 
 		BeforeEach(func() {
 			setOne = &setdatamodel.Set{}
 			setTwo = &setdatamodel.Set{}
-			sets := []*setdatamodel.Set{setOne, setTwo}
+			sets = []*setdatamodel.Set{setOne, setTwo}
+		})
 
-			fakeSetRepository.InsertStub = func(set *setdatamodel.Set) (int, error) {
-				if set == setOne {
-					return 35, nil
-				} else if set == setTwo {
-					return 36, nil
+		Context("When insert input is valid", func() {
+			BeforeEach(func() {
+				fakeSetRepository.InsertStub = func(set *setdatamodel.Set) (int, error) {
+					if set == setOne {
+						return 35, nil
+					} else if set == setTwo {
+						return 36, nil
+					}
+
+					return -1, nil
 				}
 
-				return -1, nil
-			}
+				newLift := &liftdatamodel.Lift{
+					Id:           -1,
+					Name:         "turtle hang cleans",
+					Workout:      25,
+					DataTemplate: "time_in_seconds",
+					Sets:         sets,
+				}
 
-			newLift := &liftdatamodel.Lift{
-				Id:           -1,
-				Name:         "turtle hang cleans",
-				Workout:      25,
-				DataTemplate: "time_in_seconds",
-				Sets:         sets,
-			}
+				createdId, err = subject.Insert(newLift)
+			})
 
-			createdId, err = subject.Insert(newLift)
+			It("does not return an error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("returns the id of the created lift", func() {
+				Expect(createdId).To(Equal(3))
+			})
+
+			It("creates a full lift in the database", func() {
+				query := fmt.Sprintf("SELECT * FROM lifts WHERE id=%v", createdId)
+				row := testConnection.QueryRow(query)
+
+				var liftId int
+				var name string
+				var workout int
+				var dataTemplate string
+				var setIds sqlhelpers.IntSlice
+
+				err := row.Scan(&liftId, &name, &workout, &dataTemplate, &setIds)
+				Expect(err).To(BeNil())
+
+				Expect(liftId).To(Equal(3))
+				Expect(name).To(Equal("turtle hang cleans"))
+				Expect(workout).To(Equal(25))
+				Expect(dataTemplate).To(Equal("time_in_seconds"))
+
+				Expect(len(setIds)).To(Equal(2))
+				Expect(setIds[0]).To(Equal(35))
+				Expect(setIds[1]).To(Equal(36))
+			})
+
+			It("passes the sets along to the set repository to be inserted in there", func() {
+				Expect(fakeSetRepository.InsertArgsForCall(0)).To(BeIdenticalTo(setOne))
+				Expect(fakeSetRepository.InsertArgsForCall(1)).To(BeIdenticalTo(setTwo))
+			})
+
+			It("adds the new lift's id to the sets that are inserted", func() {
+				insertedSetOne := fakeSetRepository.InsertArgsForCall(0)
+				insertedSetTwo := fakeSetRepository.InsertArgsForCall(1)
+
+				Expect(insertedSetOne.Lift).To(Equal(3))
+				Expect(insertedSetTwo.Lift).To(Equal(3))
+			})
 		})
 
-		It("does not return an error", func() {
-			Expect(err).To(BeNil())
-		})
+		Context("When inserting a set errors", func() {
+			BeforeEach(func() {
+				fakeSetRepository.InsertStub = func(set *setdatamodel.Set) (int, error) {
+					return -1, errors.New("Error inserting set")
+				}
 
-		It("returns the id of the created lift", func() {
-			Expect(createdId).To(Equal(3))
-		})
+				newLift := &liftdatamodel.Lift{
+					Id:           -1,
+					Name:         "turtle hang cleans",
+					Workout:      25,
+					DataTemplate: "time_in_seconds",
+					Sets:         sets,
+				}
 
-		It("creates a full lift in the database", func() {
-			query := fmt.Sprintf("SELECT * FROM lifts WHERE id=%v", createdId)
-			row := testConnection.QueryRow(query)
+				createdId, err = subject.Insert(newLift)
+			})
 
-			var liftId int
-			var name string
-			var workout int
-			var dataTemplate string
-			var setIds sqlhelpers.IntSlice
+			It("returns an invalid id", func() {
+				Expect(createdId).To(Equal(-1))
+			})
 
-			err := row.Scan(&liftId, &name, &workout, &dataTemplate, &setIds)
-			Expect(err).To(BeNil())
-
-			Expect(liftId).To(Equal(3))
-			Expect(name).To(Equal("turtle hang cleans"))
-			Expect(workout).To(Equal(25))
-			Expect(dataTemplate).To(Equal("time_in_seconds"))
-
-			Expect(len(setIds)).To(Equal(2))
-			Expect(setIds[0]).To(Equal(35))
-			Expect(setIds[1]).To(Equal(36))
-		})
-
-		It("passes the sets along to the set repository to be inserted in there", func() {
-			Expect(fakeSetRepository.InsertArgsForCall(0)).To(BeIdenticalTo(setOne))
-			Expect(fakeSetRepository.InsertArgsForCall(1)).To(BeIdenticalTo(setTwo))
-		})
-
-		It("adds the new lift's id to the sets that are inserted", func() {
-			insertedSetOne := fakeSetRepository.InsertArgsForCall(0)
-			insertedSetTwo := fakeSetRepository.InsertArgsForCall(1)
-
-			Expect(insertedSetOne.Lift).To(Equal(3))
-			Expect(insertedSetTwo.Lift).To(Equal(3))
+			It("returns a descriptive error", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Error inserting lift: Error inserting set"))
+			})
 		})
 	})
 })

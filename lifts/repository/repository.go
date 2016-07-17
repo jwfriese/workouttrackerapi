@@ -132,7 +132,12 @@ func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
 	var setIds sqlhelpers.IntSlice
 	for _, set := range newLift.Sets {
 		set.Lift = createdId
-		setId, _ := r.setRepository.Insert(set)
+		setId, setInsertErr := r.setRepository.Insert(set)
+		if setInsertErr != nil {
+			setInsertErrString := fmt.Sprintf("Error inserting lift: %s", setInsertErr.Error())
+			return -1, errors.New(setInsertErrString)
+		}
+
 		setIds = append(setIds, setId)
 	}
 
