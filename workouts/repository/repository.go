@@ -132,7 +132,12 @@ func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, erro
 	var liftIds sqlhelpers.IntSlice
 	for _, lift := range workout.Lifts {
 		lift.Workout = insertId
-		liftId, _ := r.liftRepository.Insert(lift)
+		liftId, liftInsertErr := r.liftRepository.Insert(lift)
+		if liftInsertErr != nil {
+			liftInsertErrString := fmt.Sprintf("Error inserting workout: %s", liftInsertErr.Error())
+			return -1, errors.New(liftInsertErrString)
+		}
+
 		liftIds = append(liftIds, liftId)
 	}
 

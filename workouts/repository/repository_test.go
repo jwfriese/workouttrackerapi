@@ -181,72 +181,104 @@ var _ = Describe("WorkoutRepository", func() {
 
 	Describe("Inserting a workout into the database", func() {
 		var (
-			turtleLift *liftdatamodel.Lift
-			crabLift   *liftdatamodel.Lift
 			createdId  int
 			err        error
+			turtleLift *liftdatamodel.Lift
+			crabLift   *liftdatamodel.Lift
+			lifts      []*liftdatamodel.Lift
 		)
 
 		BeforeEach(func() {
 			turtleLift = &liftdatamodel.Lift{}
 			crabLift = &liftdatamodel.Lift{}
-			lifts := []*liftdatamodel.Lift{turtleLift, crabLift}
-			workout := &workoutdatamodel.Workout{
-				Id:        -1,
-				Timestamp: "1990-06-05T12:00:00-08:00",
-				Name:      "name",
-				Lifts:     lifts,
-			}
+			lifts = []*liftdatamodel.Lift{turtleLift, crabLift}
+		})
 
-			fakeLiftRepository.InsertStub = func(lift *liftdatamodel.Lift) (int, error) {
-				if lift == turtleLift {
-					return 10, nil
-				} else if lift == crabLift {
-					return 11, nil
+		Context("When workout input is valid", func() {
+			BeforeEach(func() {
+				workout := &workoutdatamodel.Workout{
+					Id:        -1,
+					Timestamp: "1990-06-05T12:00:00-08:00",
+					Name:      "name",
+					Lifts:     lifts,
 				}
 
-				return -1, nil
-			}
+				fakeLiftRepository.InsertStub = func(lift *liftdatamodel.Lift) (int, error) {
+					if lift == turtleLift {
+						return 10, nil
+					} else if lift == crabLift {
+						return 11, nil
+					}
 
-			createdId, err = subject.Insert(workout)
+					return -1, nil
+				}
+
+				createdId, err = subject.Insert(workout)
+			})
+
+			It("does not return an error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("returns the id of the created workout", func() {
+				Expect(createdId).To(Equal(3))
+			})
+
+			It("creates a full workout in the database", func() {
+				query := fmt.Sprintf("SELECT * FROM workouts WHERE id=%v", createdId)
+				row := testConnection.QueryRow(query)
+				var id int
+				var name string
+				var timestamp string
+				var liftIds sqlhelpers.IntSlice
+				err := row.Scan(&id, &name, &timestamp, &liftIds)
+
+				Expect(err).To(BeNil())
+				Expect(name).To(Equal("name"))
+				Expect(timestamp).To(SatisfyAny(Equal("1990-06-05T12:00:00-08:00"), Equal("1990-06-05T13:00:00-07:00")))
+				Expect(len(liftIds)).To(Equal(2))
+				Expect(liftIds[0]).To(Equal(10))
+				Expect(liftIds[1]).To(Equal(11))
+			})
+
+			It("passes the lifts along to the lift repository to be inserted in there", func() {
+				Expect(fakeLiftRepository.InsertArgsForCall(0)).To(BeIdenticalTo(turtleLift))
+				Expect(fakeLiftRepository.InsertArgsForCall(1)).To(BeIdenticalTo(crabLift))
+			})
+
+			It("adds the new workout's id to the lifts that are inserted", func() {
+				insertedTurtleLift := fakeLiftRepository.InsertArgsForCall(0)
+				insertedCrabLift := fakeLiftRepository.InsertArgsForCall(1)
+
+				Expect(insertedTurtleLift.Workout).To(Equal(3))
+				Expect(insertedCrabLift.Workout).To(Equal(3))
+			})
 		})
 
-		It("does not return an error", func() {
-			Expect(err).To(BeNil())
-		})
+		Context("When inserting a lift errors", func() {
+			BeforeEach(func() {
+				workout := &workoutdatamodel.Workout{
+					Id:        -1,
+					Timestamp: "1990-06-05T12:00:00-08:00",
+					Name:      "name",
+					Lifts:     lifts,
+				}
 
-		It("returns the id of the created workout", func() {
-			Expect(createdId).To(Equal(3))
-		})
+				fakeLiftRepository.InsertStub = func(lift *liftdatamodel.Lift) (int, error) {
+					return -1, errors.New("Error inserting lift")
+				}
 
-		It("creates a full workout in the database", func() {
-			query := fmt.Sprintf("SELECT * FROM workouts WHERE id=%v", createdId)
-			row := testConnection.QueryRow(query)
-			var id int
-			var name string
-			var timestamp string
-			var liftIds sqlhelpers.IntSlice
-			err := row.Scan(&id, &name, &timestamp, &liftIds)
+				createdId, err = subject.Insert(workout)
+			})
 
-			Expect(err).To(BeNil())
-			Expect(name).To(Equal("name"))
-			Expect(timestamp).To(SatisfyAny(Equal("1990-06-05T12:00:00-08:00"), Equal("1990-06-05T13:00:00-07:00")))
-			Expect(len(liftIds)).To(Equal(2))
-			Expect(liftIds[0]).To(Equal(10))
-			Expect(liftIds[1]).To(Equal(11))
-		})
+			It("returns an invalid id", func() {
+				Expect(createdId).To(Equal(-1))
+			})
 
-		It("passes the lifts along to the lift repository to be inserted in there", func() {
-			Expect(fakeLiftRepository.InsertArgsForCall(0)).To(BeIdenticalTo(turtleLift))
-			Expect(fakeLiftRepository.InsertArgsForCall(1)).To(BeIdenticalTo(crabLift))
-		})
-
-		It("adds the new workout's id to the lifts that are inserted", func() {
-			insertedTurtleLift := fakeLiftRepository.InsertArgsForCall(0)
-			insertedCrabLift := fakeLiftRepository.InsertArgsForCall(1)
-
-			Expect(insertedTurtleLift.Workout).To(Equal(3))
-			Expect(insertedCrabLift.Workout).To(Equal(3))
+			It("returns a descriptive error message", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Error inserting workout: Error inserting lift"))
+			})
 		})
 	})
 })
