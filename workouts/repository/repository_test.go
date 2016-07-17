@@ -119,11 +119,16 @@ var _ = Describe("WorkoutRepository", func() {
 		Describe("A single workout", func() {
 			var (
 				workout *workoutdatamodel.Workout
+				err     error
 			)
 
 			Context("When there exists a workout with that id in the DB", func() {
 				BeforeEach(func() {
-					workout = subject.GetById(2)
+					workout, err = subject.GetById(2)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
 				})
 
 				It("returns the workout from the DB with that id", func() {
@@ -137,11 +142,16 @@ var _ = Describe("WorkoutRepository", func() {
 
 			Context("When there is no workout with that id in the DB", func() {
 				BeforeEach(func() {
-					workout = subject.GetById(100)
+					workout, err = subject.GetById(100)
 				})
 
 				It("returns nil workout", func() {
 					Expect(workout).To(BeNil())
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Workout with id=100 does not exist"))
 				})
 			})
 		})

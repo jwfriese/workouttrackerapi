@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -14,7 +15,7 @@ import (
 
 type WorkoutRepository interface {
 	All() []*workoutdatamodel.Workout
-	GetById(id int) *workoutdatamodel.Workout
+	GetById(id int) (*workoutdatamodel.Workout, error)
 	Insert(workout *workoutdatamodel.Workout) (int, error)
 }
 
@@ -71,45 +72,40 @@ func (r *workoutRepository) All() []*workoutdatamodel.Workout {
 	return nil
 }
 
-func (r *workoutRepository) GetById(id int) *workoutdatamodel.Workout {
-	if r.connection != nil {
-		query := fmt.Sprintf("SELECT * FROM workouts WHERE id = %v", id)
-		rows, err := r.connection.Query(query)
+func (r *workoutRepository) GetById(id int) (*workoutdatamodel.Workout, error) {
+	query := fmt.Sprintf("SELECT * FROM workouts WHERE id = %v", id)
+	row := r.connection.QueryRow(query)
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	var workoutId int
+	var name string
+	var timestamp string
+	var liftIds sqlhelpers.IntSlice
 
-		var id int
-		var name string
-		var timestamp string
-		var liftIds sqlhelpers.IntSlice
-
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &name, &timestamp, &liftIds)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			lifts := []*liftdatamodel.Lift{}
-			for _, liftId := range liftIds {
-				lift := r.liftRepository.GetById(liftId)
-				lifts = append(lifts, lift)
-			}
-
-			workout := &workoutdatamodel.Workout{
-				Id:        id,
-				Name:      name,
-				Timestamp: timestamp,
-				Lifts:     lifts,
-			}
-
-			return workout
-		}
+	err := row.Scan(&workoutId, &name, &timestamp, &liftIds)
+	if err == sql.ErrNoRows {
+		noResultsErrString := fmt.Sprintf("Workout with id=%v does not exist", id)
+		return nil, errors.New(noResultsErrString)
 	}
 
-	return nil
+	// How do I test handling of arbitrary errors?
+	if err != nil {
+		return nil, err
+	}
+
+	lifts := []*liftdatamodel.Lift{}
+	for _, liftId := range liftIds {
+		lift := r.liftRepository.GetById(liftId)
+		lifts = append(lifts, lift)
+	}
+
+	workout := &workoutdatamodel.Workout{
+		Id:        workoutId,
+		Name:      name,
+		Timestamp: timestamp,
+		Lifts:     lifts,
+	}
+
+	return workout, nil
 }
 
 func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, error) {
