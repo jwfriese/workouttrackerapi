@@ -118,13 +118,18 @@ var _ = Describe("LiftRepository", func() {
 		})
 
 		Describe("Getting a single lift by id", func() {
-			Context("When there exists a lift with that ID in the database", func() {
-				var (
-					result *liftdatamodel.Lift
-				)
+			var (
+				result *liftdatamodel.Lift
+				err    error
+			)
 
+			Context("When there exists a lift with that ID in the database", func() {
 				BeforeEach(func() {
-					result = subject.GetById(2)
+					result, err = subject.GetById(2)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
 				})
 
 				It("retrieves the requested lift from the database", func() {
@@ -142,15 +147,16 @@ var _ = Describe("LiftRepository", func() {
 			})
 
 			Context("When there is no lift with that id in the database", func() {
-				var (
-					result *liftdatamodel.Lift
-				)
-
 				BeforeEach(func() {
-					result = subject.GetById(1111111)
+					result, err = subject.GetById(1111111)
 				})
 
-				It("returns nil", func() {
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Lift with id=1111111 does not exist"))
+				})
+
+				It("returns no result", func() {
 					Expect(result).To(BeNil())
 				})
 			})

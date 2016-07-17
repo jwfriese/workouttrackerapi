@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -13,7 +14,7 @@ import (
 
 type LiftRepository interface {
 	All() []*liftdatamodel.Lift
-	GetById(id int) *liftdatamodel.Lift
+	GetById(id int) (*liftdatamodel.Lift, error)
 	Insert(*liftdatamodel.Lift) (int, error)
 }
 
@@ -68,7 +69,7 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 	return lifts
 }
 
-func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
+func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 	query := fmt.Sprintf("SELECT * FROM lifts WHERE id=%v", id)
 	row := r.connection.QueryRow(query)
 
@@ -79,12 +80,14 @@ func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
 	var setIds sqlhelpers.IntSlice
 
 	err := row.Scan(&liftId, &name, &workout, &dataTemplate, &setIds)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
 
-		log.Fatal(err)
+	if err == sql.ErrNoRows {
+		noLiftErrString := fmt.Sprintf("Lift with id=%v does not exist", id)
+		return nil, errors.New(noLiftErrString)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	var sets []*setdatamodel.Set
@@ -93,13 +96,15 @@ func (r *liftRepository) GetById(id int) *liftdatamodel.Lift {
 		sets = append(sets, set)
 	}
 
-	return &liftdatamodel.Lift{
+	lift := &liftdatamodel.Lift{
 		Id:           liftId,
 		Name:         name,
 		Workout:      workout,
 		DataTemplate: dataTemplate,
 		Sets:         sets,
 	}
+
+	return lift, nil
 }
 
 func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {

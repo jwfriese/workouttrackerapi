@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -75,16 +76,16 @@ var _ = Describe("WorkoutRepository", func() {
 			crabLift = &liftdatamodel.Lift{}
 			puppyLift = &liftdatamodel.Lift{}
 
-			fakeLiftRepository.GetByIdStub = func(id int) *liftdatamodel.Lift {
+			fakeLiftRepository.GetByIdStub = func(id int) (*liftdatamodel.Lift, error) {
 				if id == 1 {
-					return turtleLift
+					return turtleLift, nil
 				} else if id == 2 {
-					return crabLift
+					return crabLift, nil
 				} else if id == 3 {
-					return puppyLift
+					return puppyLift, nil
 				}
 
-				return nil
+				return nil, nil
 			}
 		})
 
@@ -92,6 +93,7 @@ var _ = Describe("WorkoutRepository", func() {
 			var (
 				workouts []*workoutdatamodel.Workout
 			)
+
 			BeforeEach(func() {
 				workouts = subject.All()
 			})
@@ -152,6 +154,26 @@ var _ = Describe("WorkoutRepository", func() {
 				It("returns a descriptive error", func() {
 					Expect(err).ToNot(BeNil())
 					Expect(err.Error()).To(Equal("Workout with id=100 does not exist"))
+				})
+			})
+
+			Context("When the lift repository returns an error on a fetch", func() {
+				BeforeEach(func() {
+					fakeLiftRepository.GetByIdStub = func(id int) (*liftdatamodel.Lift, error) {
+						errString := fmt.Sprintf("Error fetching lift (id=%v)", id)
+						return nil, errors.New(errString)
+					}
+
+					workout, err = subject.GetById(2)
+				})
+
+				It("returns no workout", func() {
+					Expect(workout).To(BeNil())
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Error fetching workout (id=2): Error fetching lift (id=3)"))
 				})
 			})
 		})

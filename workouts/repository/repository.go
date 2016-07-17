@@ -54,7 +54,7 @@ func (r *workoutRepository) All() []*workoutdatamodel.Workout {
 
 			lifts := []*liftdatamodel.Lift{}
 			for _, liftId := range liftIds {
-				lift := r.liftRepository.GetById(liftId)
+				lift, _ := r.liftRepository.GetById(liftId)
 				lifts = append(lifts, lift)
 			}
 
@@ -94,7 +94,12 @@ func (r *workoutRepository) GetById(id int) (*workoutdatamodel.Workout, error) {
 
 	lifts := []*liftdatamodel.Lift{}
 	for _, liftId := range liftIds {
-		lift := r.liftRepository.GetById(liftId)
+		lift, liftErr := r.liftRepository.GetById(liftId)
+		if liftErr != nil {
+			liftErrString := fmt.Sprintf("Error fetching workout (id=%v): %s", id, liftErr.Error())
+			return nil, errors.New(liftErrString)
+		}
+
 		lifts = append(lifts, lift)
 	}
 

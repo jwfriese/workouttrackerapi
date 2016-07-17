@@ -15,13 +15,14 @@ type FakeLiftRepository struct {
 	allReturns     struct {
 		result1 []*liftdatamodel.Lift
 	}
-	GetByIdStub        func(id int) *liftdatamodel.Lift
+	GetByIdStub        func(id int) (*liftdatamodel.Lift, error)
 	getByIdMutex       sync.RWMutex
 	getByIdArgsForCall []struct {
 		id int
 	}
 	getByIdReturns struct {
 		result1 *liftdatamodel.Lift
+		result2 error
 	}
 	InsertStub        func(*liftdatamodel.Lift) (int, error)
 	insertMutex       sync.RWMutex
@@ -61,7 +62,7 @@ func (fake *FakeLiftRepository) AllReturns(result1 []*liftdatamodel.Lift) {
 	}{result1}
 }
 
-func (fake *FakeLiftRepository) GetById(id int) *liftdatamodel.Lift {
+func (fake *FakeLiftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 	fake.getByIdMutex.Lock()
 	fake.getByIdArgsForCall = append(fake.getByIdArgsForCall, struct {
 		id int
@@ -71,7 +72,7 @@ func (fake *FakeLiftRepository) GetById(id int) *liftdatamodel.Lift {
 	if fake.GetByIdStub != nil {
 		return fake.GetByIdStub(id)
 	} else {
-		return fake.getByIdReturns.result1
+		return fake.getByIdReturns.result1, fake.getByIdReturns.result2
 	}
 }
 
@@ -87,11 +88,12 @@ func (fake *FakeLiftRepository) GetByIdArgsForCall(i int) int {
 	return fake.getByIdArgsForCall[i].id
 }
 
-func (fake *FakeLiftRepository) GetByIdReturns(result1 *liftdatamodel.Lift) {
+func (fake *FakeLiftRepository) GetByIdReturns(result1 *liftdatamodel.Lift, result2 error) {
 	fake.GetByIdStub = nil
 	fake.getByIdReturns = struct {
 		result1 *liftdatamodel.Lift
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeLiftRepository) Insert(arg1 *liftdatamodel.Lift) (int, error) {
