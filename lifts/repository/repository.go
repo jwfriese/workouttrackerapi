@@ -113,13 +113,7 @@ func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 }
 
 func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
-	var setIds sqlhelpers.IntSlice
-	for _, set := range newLift.Sets {
-		setId, _ := r.setRepository.Insert(set)
-		setIds = append(setIds, setId)
-	}
-
-	insertQuery := fmt.Sprintf("INSERT INTO lifts (name,workout,data_template,sets) VALUES ('%v',%v,'%v','%v') RETURNING id", newLift.Name, newLift.Workout, newLift.DataTemplate, setIds.ToString())
+	insertQuery := fmt.Sprintf("INSERT INTO lifts (name,workout,data_template) VALUES ('%v',%v,'%v') RETURNING id", newLift.Name, newLift.Workout, newLift.DataTemplate)
 	rows, err := r.connection.Query(insertQuery)
 	if err != nil {
 		return -1, err
@@ -133,6 +127,20 @@ func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
 
 	if err != nil {
 		return -1, err
+	}
+
+	var setIds sqlhelpers.IntSlice
+	for _, set := range newLift.Sets {
+		set.Lift = createdId
+		setId, _ := r.setRepository.Insert(set)
+		setIds = append(setIds, setId)
+	}
+
+	updateLiftQuery := fmt.Sprintf("UPDATE lifts SET sets='%s' WHERE id=%v", setIds.ToString(), createdId)
+	_, updateLiftErr := r.connection.Exec(updateLiftQuery)
+
+	if updateLiftErr != nil {
+		return -1, updateLiftErr
 	}
 
 	return createdId, nil
