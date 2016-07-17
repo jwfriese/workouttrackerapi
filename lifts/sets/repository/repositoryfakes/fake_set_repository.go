@@ -17,6 +17,15 @@ type FakeSetRepository struct {
 	getByIdReturns struct {
 		result1 *datamodel.Set
 	}
+	InsertStub        func(set *datamodel.Set) (int, error)
+	insertMutex       sync.RWMutex
+	insertArgsForCall []struct {
+		set *datamodel.Set
+	}
+	insertReturns struct {
+		result1 int
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -54,11 +63,47 @@ func (fake *FakeSetRepository) GetByIdReturns(result1 *datamodel.Set) {
 	}{result1}
 }
 
+func (fake *FakeSetRepository) Insert(set *datamodel.Set) (int, error) {
+	fake.insertMutex.Lock()
+	fake.insertArgsForCall = append(fake.insertArgsForCall, struct {
+		set *datamodel.Set
+	}{set})
+	fake.recordInvocation("Insert", []interface{}{set})
+	fake.insertMutex.Unlock()
+	if fake.InsertStub != nil {
+		return fake.InsertStub(set)
+	} else {
+		return fake.insertReturns.result1, fake.insertReturns.result2
+	}
+}
+
+func (fake *FakeSetRepository) InsertCallCount() int {
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
+	return len(fake.insertArgsForCall)
+}
+
+func (fake *FakeSetRepository) InsertArgsForCall(i int) *datamodel.Set {
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
+	return fake.insertArgsForCall[i].set
+}
+
+func (fake *FakeSetRepository) InsertReturns(result1 int, result2 error) {
+	fake.InsertStub = nil
+	fake.insertReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeSetRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getByIdMutex.RLock()
 	defer fake.getByIdMutex.RUnlock()
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
 	return fake.invocations
 }
 
