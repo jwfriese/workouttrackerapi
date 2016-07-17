@@ -23,6 +23,15 @@ type FakeWorkoutRepository struct {
 	getByIdReturns struct {
 		result1 *workoutdatamodel.Workout
 	}
+	InsertStub        func(workout *workoutdatamodel.Workout) (int, error)
+	insertMutex       sync.RWMutex
+	insertArgsForCall []struct {
+		workout *workoutdatamodel.Workout
+	}
+	insertReturns struct {
+		result1 int
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -85,6 +94,40 @@ func (fake *FakeWorkoutRepository) GetByIdReturns(result1 *workoutdatamodel.Work
 	}{result1}
 }
 
+func (fake *FakeWorkoutRepository) Insert(workout *workoutdatamodel.Workout) (int, error) {
+	fake.insertMutex.Lock()
+	fake.insertArgsForCall = append(fake.insertArgsForCall, struct {
+		workout *workoutdatamodel.Workout
+	}{workout})
+	fake.recordInvocation("Insert", []interface{}{workout})
+	fake.insertMutex.Unlock()
+	if fake.InsertStub != nil {
+		return fake.InsertStub(workout)
+	} else {
+		return fake.insertReturns.result1, fake.insertReturns.result2
+	}
+}
+
+func (fake *FakeWorkoutRepository) InsertCallCount() int {
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
+	return len(fake.insertArgsForCall)
+}
+
+func (fake *FakeWorkoutRepository) InsertArgsForCall(i int) *workoutdatamodel.Workout {
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
+	return fake.insertArgsForCall[i].workout
+}
+
+func (fake *FakeWorkoutRepository) InsertReturns(result1 int, result2 error) {
+	fake.InsertStub = nil
+	fake.insertReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeWorkoutRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -92,6 +135,8 @@ func (fake *FakeWorkoutRepository) Invocations() map[string][][]interface{} {
 	defer fake.allMutex.RUnlock()
 	fake.getByIdMutex.RLock()
 	defer fake.getByIdMutex.RUnlock()
+	fake.insertMutex.RLock()
+	defer fake.insertMutex.RUnlock()
 	return fake.invocations
 }
 

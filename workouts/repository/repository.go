@@ -9,11 +9,13 @@ import (
 	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
+	_ "github.com/lib/pq"
 )
 
 type WorkoutRepository interface {
 	All() []*workoutdatamodel.Workout
 	GetById(id int) *workoutdatamodel.Workout
+	Insert(workout *workoutdatamodel.Workout) (int, error)
 }
 
 type workoutRepository struct {
@@ -106,4 +108,29 @@ func (r *workoutRepository) GetById(id int) *workoutdatamodel.Workout {
 	}
 
 	return nil
+}
+
+func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, error) {
+	var liftIds sqlhelpers.IntSlice
+	for _, lift := range workout.Lifts {
+		liftId, _ := r.liftRepository.Insert(lift)
+		liftIds = append(liftIds, liftId)
+	}
+
+	insertStatement := fmt.Sprintf("INSERT INTO workouts (name,timestamp,lifts) VALUES ('%v','%v','%v') RETURNING id", workout.Name, workout.Timestamp, liftIds.ToString())
+	resultRows, err := r.connection.Query(insertStatement)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer resultRows.Close()
+	resultRows.Next()
+
+	var insertId int
+	err = resultRows.Scan(&insertId)
+	if err != nil {
+		return -1, err
+	}
+
+	return insertId, nil
 }
