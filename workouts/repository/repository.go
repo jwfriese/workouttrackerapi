@@ -114,13 +114,7 @@ func (r *workoutRepository) GetById(id int) (*workoutdatamodel.Workout, error) {
 }
 
 func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, error) {
-	var liftIds sqlhelpers.IntSlice
-	for _, lift := range workout.Lifts {
-		liftId, _ := r.liftRepository.Insert(lift)
-		liftIds = append(liftIds, liftId)
-	}
-
-	insertStatement := fmt.Sprintf("INSERT INTO workouts (name,timestamp,lifts) VALUES ('%v','%v','%v') RETURNING id", workout.Name, workout.Timestamp, liftIds.ToString())
+	insertStatement := fmt.Sprintf("INSERT INTO workouts (name,timestamp) VALUES ('%v','%v') RETURNING id", workout.Name, workout.Timestamp)
 	resultRows, err := r.connection.Query(insertStatement)
 	if err != nil {
 		log.Fatal(err)
@@ -133,6 +127,19 @@ func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, erro
 	err = resultRows.Scan(&insertId)
 	if err != nil {
 		return -1, err
+	}
+
+	var liftIds sqlhelpers.IntSlice
+	for _, lift := range workout.Lifts {
+		lift.Workout = insertId
+		liftId, _ := r.liftRepository.Insert(lift)
+		liftIds = append(liftIds, liftId)
+	}
+
+	updateLiftIdsQuery := fmt.Sprintf("UPDATE workouts SET lifts='%v' WHERE id=%v", liftIds.ToString(), insertId)
+	_, updateErr := r.connection.Exec(updateLiftIdsQuery)
+	if updateErr != nil {
+		return -1, updateErr
 	}
 
 	return insertId, nil

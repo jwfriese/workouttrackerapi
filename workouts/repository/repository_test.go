@@ -240,5 +240,13 @@ var _ = Describe("WorkoutRepository", func() {
 			Expect(fakeLiftRepository.InsertArgsForCall(0)).To(BeIdenticalTo(turtleLift))
 			Expect(fakeLiftRepository.InsertArgsForCall(1)).To(BeIdenticalTo(crabLift))
 		})
+
+		It("adds the new workout's id to the lifts that are inserted", func() {
+			insertedTurtleLift := fakeLiftRepository.InsertArgsForCall(0)
+			insertedCrabLift := fakeLiftRepository.InsertArgsForCall(1)
+
+			Expect(insertedTurtleLift.Workout).To(Equal(3))
+			Expect(insertedCrabLift.Workout).To(Equal(3))
+		})
 	})
 })
