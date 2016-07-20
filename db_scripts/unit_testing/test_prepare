@@ -25,4 +25,3 @@ echo -e "\nInitializing unit test database...\n"
 
 psql -d workout_tracker_unit_test -U postgres -f initialize_workouts.sql
 psql -d workout_tracker_unit_test -U postgres -f initialize_lifts.sql
-

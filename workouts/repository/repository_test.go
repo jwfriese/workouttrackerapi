@@ -2,10 +2,13 @@ package repository_test
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/lifts/repository/repositoryfakes"
+	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 	_ "github.com/lib/pq"
@@ -13,6 +16,30 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func populateWorkoutsDatabase(openConnection *sql.DB) {
+	_, err := openConnection.Exec("INSERT INTO workouts (name,timestamp,lifts) VALUES ('turtle one','2016-04-05T05:06:07-08:00','{1,2}')")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = openConnection.Exec("INSERT INTO workouts (name,timestamp,lifts) VALUES ('turtle two','2016-04-07T06:07:08-08:00','{3}')")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func clearWorkoutsDatabase(openConnection *sql.DB) {
+	_, err := openConnection.Exec("TRUNCATE workouts")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = openConnection.Exec("ALTER SEQUENCE workouts_id_seq RESTART WITH 1")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 var _ = Describe("WorkoutRepository", func() {
 	var (
@@ -28,13 +55,17 @@ var _ = Describe("WorkoutRepository", func() {
 			log.Fatal(err)
 		}
 
+		populateWorkoutsDatabase(testConnection)
 		fakeLiftRepository = new(repositoryfakes.FakeLiftRepository)
 		subject = repository.NewWorkoutRepository(testConnection, fakeLiftRepository)
 	})
 
-	Describe("Getting all workouts from the DB", func() {
+	AfterEach(func() {
+		clearWorkoutsDatabase(testConnection)
+	})
+
+	Describe("Getting workouts from the DB", func() {
 		var (
-			workouts   []*workoutdatamodel.Workout
 			turtleLift *liftdatamodel.Lift
 			crabLift   *liftdatamodel.Lift
 			puppyLift  *liftdatamodel.Lift
@@ -45,76 +76,208 @@ var _ = Describe("WorkoutRepository", func() {
 			crabLift = &liftdatamodel.Lift{}
 			puppyLift = &liftdatamodel.Lift{}
 
-			fakeLiftRepository.GetByIdStub = func(id int) *liftdatamodel.Lift {
+			fakeLiftRepository.GetByIdStub = func(id int) (*liftdatamodel.Lift, error) {
 				if id == 1 {
-					return turtleLift
+					return turtleLift, nil
 				} else if id == 2 {
-					return crabLift
+					return crabLift, nil
 				} else if id == 3 {
-					return puppyLift
+					return puppyLift, nil
 				}
 
-				return nil
+				return nil, nil
 			}
-
-			workouts = subject.All()
 		})
 
-		It("returns all workouts from the DB", func() {
-			Expect(len(workouts)).To(Equal(5))
-			firstWorkout := workouts[0]
+		Describe("All", func() {
+			var (
+				workouts []*workoutdatamodel.Workout
+			)
 
-			Expect(firstWorkout.Id).To(Equal(1))
-			Expect(firstWorkout.Name).To(Equal("turtle one"))
+			BeforeEach(func() {
+				workouts = subject.All()
+			})
 
-			Expect(len(firstWorkout.Lifts)).To(Equal(3))
-			Expect(firstWorkout.Lifts[0]).To(BeIdenticalTo(turtleLift))
-			Expect(firstWorkout.Lifts[1]).To(BeIdenticalTo(crabLift))
-			Expect(firstWorkout.Lifts[2]).To(BeIdenticalTo(puppyLift))
+			It("returns all workouts from the DB", func() {
+				Expect(len(workouts)).To(Equal(2))
+				firstWorkout := workouts[0]
+
+				Expect(firstWorkout.Id).To(Equal(1))
+				Expect(firstWorkout.Name).To(Equal("turtle one"))
+
+				Expect(len(firstWorkout.Lifts)).To(Equal(2))
+				Expect(firstWorkout.Lifts[0]).To(BeIdenticalTo(turtleLift))
+				Expect(firstWorkout.Lifts[1]).To(BeIdenticalTo(crabLift))
+
+				secondWorkout := workouts[1]
+				Expect(secondWorkout.Id).To(Equal(2))
+				Expect(secondWorkout.Name).To(Equal("turtle two"))
+
+				Expect(len(secondWorkout.Lifts)).To(Equal(1))
+				Expect(secondWorkout.Lifts[0]).To(BeIdenticalTo(puppyLift))
+			})
+		})
+
+		Describe("A single workout", func() {
+			var (
+				workout *workoutdatamodel.Workout
+				err     error
+			)
+
+			Context("When there exists a workout with that id in the DB", func() {
+				BeforeEach(func() {
+					workout, err = subject.GetById(2)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("returns the workout from the DB with that id", func() {
+					Expect(workout).ToNot(BeNil())
+					Expect(workout.Id).To(Equal(2))
+					Expect(workout.Name).To(Equal("turtle two"))
+					Expect(len(workout.Lifts)).To(Equal(1))
+					Expect(workout.Lifts[0]).To(BeIdenticalTo(puppyLift))
+				})
+			})
+
+			Context("When there is no workout with that id in the DB", func() {
+				BeforeEach(func() {
+					workout, err = subject.GetById(100)
+				})
+
+				It("returns nil workout", func() {
+					Expect(workout).To(BeNil())
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Workout with id=100 does not exist"))
+				})
+			})
+
+			Context("When the lift repository returns an error on a fetch", func() {
+				BeforeEach(func() {
+					fakeLiftRepository.GetByIdStub = func(id int) (*liftdatamodel.Lift, error) {
+						errString := fmt.Sprintf("Error fetching lift (id=%v)", id)
+						return nil, errors.New(errString)
+					}
+
+					workout, err = subject.GetById(2)
+				})
+
+				It("returns no workout", func() {
+					Expect(workout).To(BeNil())
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Error fetching workout (id=2): Error fetching lift (id=3)"))
+				})
+			})
 		})
 	})
 
-	Describe("Getting a single workout from the DB", func() {
+	Describe("Inserting a workout into the database", func() {
 		var (
-			workout    *workoutdatamodel.Workout
+			createdId  int
+			err        error
 			turtleLift *liftdatamodel.Lift
 			crabLift   *liftdatamodel.Lift
+			lifts      []*liftdatamodel.Lift
 		)
 
-		Context("When there exists a workout with that id in the DB", func() {
-			BeforeEach(func() {
-				turtleLift = &liftdatamodel.Lift{}
-				crabLift = &liftdatamodel.Lift{}
+		BeforeEach(func() {
+			turtleLift = &liftdatamodel.Lift{}
+			crabLift = &liftdatamodel.Lift{}
+			lifts = []*liftdatamodel.Lift{turtleLift, crabLift}
+		})
 
-				fakeLiftRepository.GetByIdStub = func(id int) *liftdatamodel.Lift {
-					if id == 4 {
-						return turtleLift
-					} else if id == 5 {
-						return crabLift
+		Context("When workout input is valid", func() {
+			BeforeEach(func() {
+				workout := &workoutdatamodel.Workout{
+					Id:        -1,
+					Timestamp: "1990-06-05T12:00:00-08:00",
+					Name:      "name",
+					Lifts:     lifts,
+				}
+
+				fakeLiftRepository.InsertStub = func(lift *liftdatamodel.Lift) (int, error) {
+					if lift == turtleLift {
+						return 10, nil
+					} else if lift == crabLift {
+						return 11, nil
 					}
 
-					return nil
+					return -1, nil
 				}
-				workout = subject.GetById(2)
+
+				createdId, err = subject.Insert(workout)
 			})
 
-			It("returns the workout from the DB with that id", func() {
-				Expect(workout).ToNot(BeNil())
-				Expect(workout.Id).To(Equal(2))
-				Expect(workout.Name).To(Equal("turtle two"))
-				Expect(len(workout.Lifts)).To(Equal(2))
-				Expect(workout.Lifts[0]).To(BeIdenticalTo(turtleLift))
-				Expect(workout.Lifts[1]).To(BeIdenticalTo(crabLift))
+			It("does not return an error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("returns the id of the created workout", func() {
+				Expect(createdId).To(Equal(3))
+			})
+
+			It("creates a full workout in the database", func() {
+				query := fmt.Sprintf("SELECT * FROM workouts WHERE id=%v", createdId)
+				row := testConnection.QueryRow(query)
+				var id int
+				var name string
+				var timestamp string
+				var liftIds sqlhelpers.IntSlice
+				err := row.Scan(&id, &name, &timestamp, &liftIds)
+
+				Expect(err).To(BeNil())
+				Expect(name).To(Equal("name"))
+				Expect(timestamp).To(SatisfyAny(Equal("1990-06-05T12:00:00-08:00"), Equal("1990-06-05T13:00:00-07:00")))
+				Expect(len(liftIds)).To(Equal(2))
+				Expect(liftIds[0]).To(Equal(10))
+				Expect(liftIds[1]).To(Equal(11))
+			})
+
+			It("passes the lifts along to the lift repository to be inserted in there", func() {
+				Expect(fakeLiftRepository.InsertArgsForCall(0)).To(BeIdenticalTo(turtleLift))
+				Expect(fakeLiftRepository.InsertArgsForCall(1)).To(BeIdenticalTo(crabLift))
+			})
+
+			It("adds the new workout's id to the lifts that are inserted", func() {
+				insertedTurtleLift := fakeLiftRepository.InsertArgsForCall(0)
+				insertedCrabLift := fakeLiftRepository.InsertArgsForCall(1)
+
+				Expect(insertedTurtleLift.Workout).To(Equal(3))
+				Expect(insertedCrabLift.Workout).To(Equal(3))
 			})
 		})
 
-		Context("When there is no workout with that id in the DB", func() {
+		Context("When inserting a lift errors", func() {
 			BeforeEach(func() {
-				workout = subject.GetById(100)
+				workout := &workoutdatamodel.Workout{
+					Id:        -1,
+					Timestamp: "1990-06-05T12:00:00-08:00",
+					Name:      "name",
+					Lifts:     lifts,
+				}
+
+				fakeLiftRepository.InsertStub = func(lift *liftdatamodel.Lift) (int, error) {
+					return -1, errors.New("Error inserting lift")
+				}
+
+				createdId, err = subject.Insert(workout)
 			})
 
-			It("returns nil", func() {
-				Expect(workout).To(BeNil())
+			It("returns an invalid id", func() {
+				Expect(createdId).To(Equal(-1))
+			})
+
+			It("returns a descriptive error message", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Error inserting workout: Error inserting lift"))
 			})
 		})
 	})

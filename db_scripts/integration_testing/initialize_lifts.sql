@@ -3,8 +3,8 @@
 CREATE TYPE lift_data_template AS ENUM(
     'weight/reps',
     'height/reps',
-    'time_in_seconds',
-    'weight/time_in_seconds'
+    'timeInSeconds',
+    'weight/timeInSeconds'
 );
 
 CREATE TABLE lifts(

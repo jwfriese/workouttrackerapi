@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-bash unit_testing/test_prepare
-bash integration_testing/test_prepare

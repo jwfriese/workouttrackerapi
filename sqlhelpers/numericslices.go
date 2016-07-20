@@ -3,10 +3,40 @@ package sqlhelpers
 import (
 	"bytes"
 	"errors"
+	"log"
 	"strconv"
 )
 
 type IntSlice []int
+
+func (slice *IntSlice) ToString() string {
+	var buffer bytes.Buffer
+	err := buffer.WriteByte('{')
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for index, integer := range *slice {
+		if index > 0 {
+			err = buffer.WriteByte(',')
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		_, err = buffer.WriteString(strconv.Itoa(integer))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	err = buffer.WriteByte('}')
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return buffer.String()
+}
 
 func (slice *IntSlice) Scan(src interface{}) error {
 	var newSlice []int

@@ -2,14 +2,16 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"log"
 
 	"github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
+	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 )
 
 type SetRepository interface {
-	GetById(id int) *datamodel.Set
+	GetById(id int) (*datamodel.Set, error)
+	Insert(set *datamodel.Set) (int, error)
 }
 
 type setRepository struct {
@@ -22,23 +24,29 @@ func NewSetRepository(connection *sql.DB) SetRepository {
 	}
 }
 
-func (r *setRepository) GetById(id int) *datamodel.Set {
+func (r *setRepository) GetById(id int) (*datamodel.Set, error) {
 	queryString := fmt.Sprintf("SELECT * FROM sets WHERE id = %v", id)
 	row := r.connection.QueryRow(queryString)
 
-	var setId int
-	var dataTemplate string
-	var lift int
-	var nullableWeight sql.NullFloat64
-	var nullableHeight sql.NullFloat64
-	var nullableTimeInSeconds sql.NullFloat64
-	var nullableReps sql.NullInt64
+	var (
+		setId                 int
+		dataTemplate          string
+		lift                  int
+		nullableWeight        sql.NullFloat64
+		nullableHeight        sql.NullFloat64
+		nullableTimeInSeconds sql.NullFloat64
+		nullableReps          sql.NullInt64
+	)
 
-	var err error
-	err = row.Scan(&setId, &dataTemplate, &lift, &nullableWeight, &nullableHeight, &nullableTimeInSeconds, &nullableReps)
+	err := row.Scan(&setId, &dataTemplate, &lift, &nullableWeight, &nullableHeight, &nullableTimeInSeconds, &nullableReps)
+
+	if err == sql.ErrNoRows {
+		noSetErrString := fmt.Sprintf("Set with id=%v does not exist", id)
+		return nil, errors.New(noSetErrString)
+	}
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var weight *float32
@@ -65,7 +73,7 @@ func (r *setRepository) GetById(id int) *datamodel.Set {
 		(*reps) = int(nullableReps.Int64)
 	}
 
-	return &datamodel.Set{
+	set := &datamodel.Set{
 		Id:            setId,
 		DataTemplate:  dataTemplate,
 		Lift:          lift,
@@ -74,4 +82,31 @@ func (r *setRepository) GetById(id int) *datamodel.Set {
 		TimeInSeconds: timeInSeconds,
 		Reps:          reps,
 	}
+
+	return set, nil
+}
+
+func (r *setRepository) Insert(set *datamodel.Set) (int, error) {
+	weightString := sqlhelpers.Float32PointerToSQLString(set.Weight)
+	heightString := sqlhelpers.Float32PointerToSQLString(set.Height)
+	timeInSecondsString := sqlhelpers.Float32PointerToSQLString(set.TimeInSeconds)
+	repsString := sqlhelpers.IntPointerToSQLString(set.Reps)
+
+	insertQuery := fmt.Sprintf("INSERT INTO sets (data_template,lift,weight,height,time_in_seconds,reps) VALUES ('%v',%v,%v,%v,%v,%v) RETURNING id", set.DataTemplate, set.Lift, weightString, heightString, timeInSecondsString, repsString)
+
+	rows, err := r.connection.Query(insertQuery)
+	if err != nil {
+		return -1, err
+	}
+
+	defer rows.Close()
+	rows.Next()
+
+	var createdId int
+	err = rows.Scan(&createdId)
+	if err != nil {
+		return -1, err
+	}
+
+	return createdId, nil
 }

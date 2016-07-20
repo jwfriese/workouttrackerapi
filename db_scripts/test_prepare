@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+bash $DIR/unit_testing/test_prepare
+bash $DIR/integration_testing/test_prepare
