@@ -80,7 +80,7 @@ var _ = Describe("WorkoutsCreateRequestTranslator", func() {
 
 				It("returns an error", func() {
 					Expect(result).To(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"name\" field from workout JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'name' field from workout JSON"))
 				})
 			})
 
@@ -93,7 +93,7 @@ var _ = Describe("WorkoutsCreateRequestTranslator", func() {
 
 				It("returns an error", func() {
 					Expect(result).To(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"timestamp\" field from workout JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'timestamp' field from workout JSON"))
 				})
 			})
 
@@ -106,7 +106,7 @@ var _ = Describe("WorkoutsCreateRequestTranslator", func() {
 
 				It("returns an error", func() {
 					Expect(result).To(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"lifts\" field from workout JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'lifts' field from workout JSON"))
 				})
 			})
 		})

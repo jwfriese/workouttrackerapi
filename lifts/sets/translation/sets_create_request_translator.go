@@ -44,7 +44,7 @@ func (translator *setsCreateRequestTranslator) Translate(requestJSON []byte) (*s
 
 func validateRequest(request *setsCreateRequest) error {
 	if request.DataTemplate == nil {
-		return errors.New("Missing required \"dataTemplate\" field in set request")
+		return errors.New("Missing required 'dataTemplate' field in set request")
 	}
 
 	if *(request.DataTemplate) == "weight/reps" {
@@ -57,17 +57,17 @@ func validateRequest(request *setsCreateRequest) error {
 		return validateWeightTimeInSecondsRequest(request)
 	}
 
-	errString := fmt.Sprintf("Unrecognized data template \"%s\"", *(request.DataTemplate))
+	errString := fmt.Sprintf("Unrecognized data template '%s'", *(request.DataTemplate))
 	return errors.New(errString)
 }
 
 func validateWeightRepsRequest(request *setsCreateRequest) error {
 	if request.Weight == nil {
-		return errors.New("Missing required \"weight\" field in request for \"weight/reps\" set")
+		return errors.New("Missing required 'weight' field in request for 'weight/reps' set")
 	}
 
 	if request.Reps == nil {
-		return errors.New("Missing required \"reps\" field in request for \"weight/reps\" set")
+		return errors.New("Missing required 'reps' field in request for 'weight/reps' set")
 	}
 
 	return nil
@@ -75,11 +75,11 @@ func validateWeightRepsRequest(request *setsCreateRequest) error {
 
 func validateHeightRepsRequest(request *setsCreateRequest) error {
 	if request.Height == nil {
-		return errors.New("Missing required \"height\" field in request for \"height/reps\" set")
+		return errors.New("Missing required 'height' field in request for 'height/reps' set")
 	}
 
 	if request.Reps == nil {
-		return errors.New("Missing required \"reps\" field in request for \"height/reps\" set")
+		return errors.New("Missing required 'reps' field in request for 'height/reps' set")
 	}
 
 	return nil
@@ -87,7 +87,7 @@ func validateHeightRepsRequest(request *setsCreateRequest) error {
 
 func validateTimeInSecondsRequest(request *setsCreateRequest) error {
 	if request.TimeInSeconds == nil {
-		return errors.New("Missing required \"timeInSeconds\" field in request for \"timeInSeconds\" set")
+		return errors.New("Missing required 'timeInSeconds' field in request for 'timeInSeconds' set")
 	}
 
 	return nil
@@ -95,11 +95,11 @@ func validateTimeInSecondsRequest(request *setsCreateRequest) error {
 
 func validateWeightTimeInSecondsRequest(request *setsCreateRequest) error {
 	if request.Weight == nil {
-		return errors.New("Missing required \"weight\" field in request for \"weight/timeInSeconds\" set")
+		return errors.New("Missing required 'weight' field in request for 'weight/timeInSeconds' set")
 	}
 
 	if request.TimeInSeconds == nil {
-		return errors.New("Missing required \"timeInSeconds\" field in request for \"weight/timeInSeconds\" set")
+		return errors.New("Missing required 'timeInSeconds' field in request for 'weight/timeInSeconds' set")
 	}
 
 	return nil

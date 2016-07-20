@@ -81,7 +81,7 @@ var _ = Describe("LiftsCreateRequestTranslator", func() {
 				It("returns a descriptive error", func() {
 					Expect(result).To(BeNil())
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"name\" field in lift request JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'name' field in lift request JSON"))
 				})
 			})
 
@@ -95,7 +95,7 @@ var _ = Describe("LiftsCreateRequestTranslator", func() {
 				It("returns a descriptive error", func() {
 					Expect(result).To(BeNil())
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"dataTemplate\" field in lift request JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'dataTemplate' field in lift request JSON"))
 				})
 			})
 
@@ -109,7 +109,7 @@ var _ = Describe("LiftsCreateRequestTranslator", func() {
 				It("returns a descriptive error", func() {
 					Expect(result).To(BeNil())
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"sets\" field in lift request JSON"))
+					Expect(err.Error()).To(Equal("Missing required 'sets' field in lift request JSON"))
 				})
 			})
 		})

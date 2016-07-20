@@ -31,19 +31,19 @@ func (translator *workoutsCreateRequestTranslator) Translate(requestJSON []byte)
 	}
 
 	if workoutRequest.Name == nil {
-		return nil, errors.New("Missing required \"name\" field from workout JSON")
+		return nil, errors.New("Missing required 'name' field from workout JSON")
 	}
 
 	name := *(workoutRequest.Name)
 
 	if workoutRequest.Timestamp == nil {
-		return nil, errors.New("Missing required \"timestamp\" field from workout JSON")
+		return nil, errors.New("Missing required 'timestamp' field from workout JSON")
 	}
 
 	timestamp := *(workoutRequest.Timestamp)
 
 	if workoutRequest.LiftJSONObjects == nil {
-		return nil, errors.New("Missing required \"lifts\" field from workout JSON")
+		return nil, errors.New("Missing required 'lifts' field from workout JSON")
 	}
 
 	var lifts []*liftdatamodel.Lift

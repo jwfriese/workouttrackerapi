@@ -101,7 +101,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 				It("returns a descriptive error", func() {
 					Expect(result).To(BeNil())
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(Equal("Missing required \"dataTemplate\" field in set request"))
+					Expect(err.Error()).To(Equal("Missing required 'dataTemplate' field in set request"))
 				})
 			})
 
@@ -114,7 +114,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 				It("returns a descriptive error", func() {
 					Expect(result).To(BeNil())
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(Equal("Unrecognized data template \"turtles/are/bananas\""))
+					Expect(err.Error()).To(Equal("Unrecognized data template 'turtles/are/bananas'"))
 				})
 			})
 
@@ -129,7 +129,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"weight\" field in request for \"weight/reps\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'weight' field in request for 'weight/reps' set"))
 					})
 				})
 
@@ -143,7 +143,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"reps\" field in request for \"weight/reps\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'reps' field in request for 'weight/reps' set"))
 					})
 				})
 			})
@@ -159,7 +159,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"height\" field in request for \"height/reps\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'height' field in request for 'height/reps' set"))
 					})
 				})
 
@@ -173,7 +173,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"reps\" field in request for \"height/reps\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'reps' field in request for 'height/reps' set"))
 					})
 				})
 			})
@@ -189,7 +189,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"timeInSeconds\" field in request for \"timeInSeconds\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'timeInSeconds' field in request for 'timeInSeconds' set"))
 					})
 				})
 			})
@@ -205,7 +205,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"weight\" field in request for \"weight/timeInSeconds\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'weight' field in request for 'weight/timeInSeconds' set"))
 					})
 				})
 
@@ -219,7 +219,7 @@ var _ = Describe("SetsCreateRequestTranslator", func() {
 					It("returns a descriptive error", func() {
 						Expect(result).To(BeNil())
 						Expect(err).ToNot(BeNil())
-						Expect(err.Error()).To(Equal("Missing required \"timeInSeconds\" field in request for \"weight/timeInSeconds\" set"))
+						Expect(err.Error()).To(Equal("Missing required 'timeInSeconds' field in request for 'weight/timeInSeconds' set"))
 					})
 				})
 			})

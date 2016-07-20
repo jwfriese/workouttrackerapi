@@ -37,19 +37,19 @@ func (translator *liftsCreateRequestTranslator) Translate(requestJSON []byte) (*
 	}
 
 	if request.Name == nil {
-		return nil, errors.New("Missing required \"name\" field in lift request JSON")
+		return nil, errors.New("Missing required 'name' field in lift request JSON")
 	}
 
 	name := *(request.Name)
 
 	if request.DataTemplate == nil {
-		return nil, errors.New("Missing required \"dataTemplate\" field in lift request JSON")
+		return nil, errors.New("Missing required 'dataTemplate' field in lift request JSON")
 	}
 
 	dataTemplate := *(request.DataTemplate)
 
 	if request.SetObjects == nil {
-		return nil, errors.New("Missing required \"sets\" field in lift request JSON")
+		return nil, errors.New("Missing required 'sets' field in lift request JSON")
 	}
 
 	sets := []*setdatamodel.Set{}
