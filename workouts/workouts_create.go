@@ -28,7 +28,8 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 	requestBody, readErr := ioutil.ReadAll(request.Body)
 	if readErr != nil {
-		log.Fatal(readErr)
+		writeRequestError(writer, readErr)
+		return
 	}
 	request.Body.Close()
 
@@ -40,17 +41,20 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 	createdWorkoutId, insertErr := handler.repository.Insert(workout)
 	if insertErr != nil {
-		log.Fatal(insertErr)
+		writeServerError(writer, insertErr)
+		return
 	}
 
 	createdWorkout, workoutFetchErr := handler.repository.GetById(createdWorkoutId)
 	if workoutFetchErr != nil {
-		log.Fatal(workoutFetchErr)
+		writeServerError(writer, workoutFetchErr)
+		return
 	}
 
 	createdWorkoutJSON, marshalErr := json.Marshal(&createdWorkout)
 	if marshalErr != nil {
-		log.Fatal(marshalErr)
+		writeServerError(writer, marshalErr)
+		return
 	}
 
 	locationHeader := fmt.Sprintf("workouts/%v", createdWorkoutId)
