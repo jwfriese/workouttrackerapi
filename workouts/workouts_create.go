@@ -34,17 +34,14 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 	workout, translateErr := handler.translator.Translate(requestBody)
 	if translateErr != nil {
-		log.Fatal(translateErr)
+		writeRequestError(writer, translateErr)
+		return
 	}
+
 	createdWorkoutId, insertErr := handler.repository.Insert(workout)
 	if insertErr != nil {
 		log.Fatal(insertErr)
 	}
-
-	locationHeader := fmt.Sprintf("workouts/%v", createdWorkoutId)
-	writer.Header().Set("Location", locationHeader)
-
-	writer.WriteHeader(http.StatusCreated)
 
 	createdWorkout, workoutFetchErr := handler.repository.GetById(createdWorkoutId)
 	if workoutFetchErr != nil {
@@ -56,5 +53,22 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 		log.Fatal(marshalErr)
 	}
 
+	locationHeader := fmt.Sprintf("workouts/%v", createdWorkoutId)
+	writer.Header().Set("Location", locationHeader)
+	writer.WriteHeader(http.StatusCreated)
 	writer.Write(createdWorkoutJSON)
+}
+
+func writeServerError(writer http.ResponseWriter, err error) {
+	writer.WriteHeader(http.StatusInternalServerError)
+
+	errString := fmt.Sprintf("{\"error\":\"%s\"}", err.Error())
+	writer.Write([]byte(errString))
+}
+
+func writeRequestError(writer http.ResponseWriter, err error) {
+	writer.WriteHeader(http.StatusBadRequest)
+
+	errString := fmt.Sprintf("{\"error\":\"%s\"}", err.Error())
+	writer.Write([]byte(errString))
 }
