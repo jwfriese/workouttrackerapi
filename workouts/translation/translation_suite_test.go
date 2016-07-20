@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestTranslation(t *testing.T) {
+func TestWorkoutRequestTranslation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Translation Suite")
+	RunSpecs(t, "Workout Request Translation Suite")
 }
