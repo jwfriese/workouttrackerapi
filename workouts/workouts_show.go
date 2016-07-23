@@ -10,10 +10,6 @@ import (
 	"github.com/jwfriese/workouttrackerapi/workouts/repository"
 )
 
-func WorkoutsShowEndpoint() string {
-	return "/workouts/{id:[0-9]+}"
-}
-
 func WorkoutsShowHandler(r repository.WorkoutRepository) http.Handler {
 	return &workoutsShowHandler{
 		repository: r,
