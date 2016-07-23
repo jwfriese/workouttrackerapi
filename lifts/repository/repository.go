@@ -12,10 +12,13 @@ import (
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 )
 
+var ErrDoesNotExist = errors.New("Lift with given id does not exist")
+
 type LiftRepository interface {
 	All() []*liftdatamodel.Lift
 	GetById(id int) (*liftdatamodel.Lift, error)
 	Insert(*liftdatamodel.Lift) (int, error)
+	Delete(id int) error
 }
 
 type liftRepository struct {
@@ -149,4 +152,30 @@ func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
 	}
 
 	return createdId, nil
+}
+
+func (repository *liftRepository) Delete(id int) error {
+	liftQuery := fmt.Sprintf("SELECT id, sets FROM lifts WHERE id=%v", id)
+	liftRow := repository.connection.QueryRow(liftQuery)
+
+	var liftId int
+	var setIds sqlhelpers.IntSlice
+
+	scanErr := liftRow.Scan(&liftId, &setIds)
+	if scanErr == sql.ErrNoRows {
+		return ErrDoesNotExist
+	}
+
+	for _, setId := range setIds {
+		deleteSetErr := repository.setRepository.Delete(setId)
+		if deleteSetErr != nil && deleteSetErr != setrepository.ErrDoesNotExist {
+			errString := fmt.Sprintf("Lift delete failed: Could not delete set with id=%v", setId)
+			return errors.New(errString)
+		}
+	}
+
+	deleteLiftQuery := fmt.Sprintf("DELETE FROM lifts WHERE id=%v", liftId)
+	_, deleteLiftErr := repository.connection.Exec(deleteLiftQuery)
+
+	return deleteLiftErr
 }
