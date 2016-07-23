@@ -13,10 +13,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var ErrDoesNotExist = errors.New("Workout with the given id does not exist")
+
 type WorkoutRepository interface {
 	All() []*workoutdatamodel.Workout
 	GetById(id int) (*workoutdatamodel.Workout, error)
 	Insert(workout *workoutdatamodel.Workout) (int, error)
+	Delete(id int) error
 }
 
 type workoutRepository struct {
@@ -148,4 +151,31 @@ func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, erro
 	}
 
 	return insertId, nil
+}
+
+func (repository *workoutRepository) Delete(id int) error {
+	workoutQuery := fmt.Sprintf("SELECT id, lifts FROM workouts WHERE id=%v", id)
+	workoutRow := repository.connection.QueryRow(workoutQuery)
+
+	var workoutId int
+	var lifts sqlhelpers.IntSlice
+
+	scanErr := workoutRow.Scan(&workoutId, &lifts)
+	if scanErr == sql.ErrNoRows {
+		return ErrDoesNotExist
+	}
+
+	for _, liftId := range lifts {
+		deleteLiftErr := repository.liftRepository.Delete(liftId)
+		if deleteLiftErr != nil && deleteLiftErr != liftrepository.ErrDoesNotExist {
+			errString := fmt.Sprintf("Workout failed to delete: Lift with id=%v could not be deleted", liftId)
+			return errors.New(errString)
+		}
+	}
+
+	deleteWorkoutQuery := fmt.Sprintf("DELETE FROM workouts WHERE id=%v", workoutId)
+	_, deleteErr := repository.connection.Exec(deleteWorkoutQuery)
+
+	// How do I test this deleteErr?
+	return deleteErr
 }

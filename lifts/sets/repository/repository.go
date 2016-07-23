@@ -9,9 +9,12 @@ import (
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 )
 
+var ErrDoesNotExist = errors.New("Set with given id does not exist")
+
 type SetRepository interface {
 	GetById(id int) (*datamodel.Set, error)
 	Insert(set *datamodel.Set) (int, error)
+	Delete(id int) error
 }
 
 type setRepository struct {
@@ -109,4 +112,21 @@ func (r *setRepository) Insert(set *datamodel.Set) (int, error) {
 	}
 
 	return createdId, nil
+}
+
+func (repository *setRepository) Delete(id int) error {
+	setQuery := fmt.Sprintf("SELECT id FROM sets WHERE id=%v", id)
+	setRow := repository.connection.QueryRow(setQuery)
+
+	var setId int
+	scanErr := setRow.Scan(&setId)
+
+	if scanErr == sql.ErrNoRows {
+		return ErrDoesNotExist
+	}
+
+	deleteSetQuery := fmt.Sprintf("DELETE FROM sets WHERE id=%v", id)
+	_, deleteSetErr := repository.connection.Exec(deleteSetQuery)
+
+	return deleteSetErr
 }

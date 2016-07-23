@@ -174,4 +174,38 @@ var _ = Describe("SetRepository", func() {
 			Expect(repsValue).To(BeEquivalentTo(8))
 		})
 	})
+
+	Describe("Deleting a set from the database", func() {
+		var (
+			err error
+		)
+
+		Context("When a set with the given id exists in the database", func() {
+			BeforeEach(func() {
+				err = subject.Delete(1)
+			})
+
+			It("returns no error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("deletes the set from the database", func() {
+				row := testConnection.QueryRow("SELECT id FROM sets WHERE id=1")
+				var setId int
+				readErr := row.Scan(&setId)
+
+				Expect(readErr).To(Equal(sql.ErrNoRows))
+			})
+		})
+
+		Context("When no set with the given id exists in the database", func() {
+			BeforeEach(func() {
+				err = subject.Delete(19875387)
+			})
+
+			It("returns DoesNotExist error", func() {
+				Expect(err).To(Equal(repository.ErrDoesNotExist))
+			})
+		})
+	})
 })

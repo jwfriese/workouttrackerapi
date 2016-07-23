@@ -23,14 +23,15 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 	handler.Handle("/lifts", lifts.LiftsHandler(liftRepository))
 
 	workoutRepository := workoutrepository.NewWorkoutRepository(db, liftRepository)
-	handler.Handle(workouts.WorkoutsShowEndpoint(), workouts.WorkoutsShowHandler(workoutRepository))
+	handler.Handle("/workouts/{id:[0-9]+}", workouts.WorkoutsShowHandler(workoutRepository)).Methods("GET")
+	handler.Handle("/workouts/{id}", workouts.WorkoutsDeleteHandler(workoutRepository)).Methods("DELETE")
 
 	setsCreateRequestTranslator := setstranslation.NewSetsCreateRequestTranslator()
 	liftsCreateRequestTranslator := liftstranslation.NewLiftsCreateRequestTranslator(setsCreateRequestTranslator)
 	workoutsCreateRequestTranslator := workoutstranslation.NewWorkoutsCreateRequestTranslator(liftsCreateRequestTranslator)
 
-	workoutsEndpointHandler := workouts.WorkoutsEndpointHandler(workoutRepository, workoutsCreateRequestTranslator)
-	handler.Handle("/workouts", workoutsEndpointHandler).Methods("GET", "POST")
+	handler.Handle("/workouts", workouts.WorkoutsIndexHandler(workoutRepository)).Methods("GET")
+	handler.Handle("/workouts", workouts.WorkoutsCreateHandler(workoutRepository, workoutsCreateRequestTranslator)).Methods("POST")
 
 	return handler
 }

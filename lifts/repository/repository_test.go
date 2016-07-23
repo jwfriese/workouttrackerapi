@@ -7,9 +7,10 @@ import (
 	"log"
 
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
-	"github.com/jwfriese/workouttrackerapi/lifts/repository"
+	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	setdatamodel "github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
-	"github.com/jwfriese/workouttrackerapi/lifts/sets/repository/repositoryfakes"
+	setrepository "github.com/jwfriese/workouttrackerapi/lifts/sets/repository"
+	setrepositoryfakes "github.com/jwfriese/workouttrackerapi/lifts/sets/repository/repositoryfakes"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	_ "github.com/lib/pq"
 
@@ -43,9 +44,9 @@ func clearLiftsDatabase(openConnection *sql.DB) {
 
 var _ = Describe("LiftRepository", func() {
 	var (
-		subject           repository.LiftRepository
+		subject           liftrepository.LiftRepository
 		testConnection    *sql.DB
-		fakeSetRepository *repositoryfakes.FakeSetRepository
+		fakeSetRepository *setrepositoryfakes.FakeSetRepository
 	)
 
 	BeforeEach(func() {
@@ -57,8 +58,8 @@ var _ = Describe("LiftRepository", func() {
 
 		populateLiftsDatabase(testConnection)
 
-		fakeSetRepository = new(repositoryfakes.FakeSetRepository)
-		subject = repository.NewLiftRepository(testConnection, fakeSetRepository)
+		fakeSetRepository = new(setrepositoryfakes.FakeSetRepository)
+		subject = liftrepository.NewLiftRepository(testConnection, fakeSetRepository)
 	})
 
 	AfterEach(func() {
@@ -291,6 +292,103 @@ var _ = Describe("LiftRepository", func() {
 			It("returns a descriptive error", func() {
 				Expect(err).ToNot(BeNil())
 				Expect(err.Error()).To(Equal("Error inserting lift: Error inserting set"))
+			})
+		})
+	})
+
+	Describe("Deleting lifts from the database", func() {
+		var (
+			err error
+		)
+
+		Context("When a lift with the given id exists in the database", func() {
+			Context("When deleting the lift's sets returns no errors", func() {
+				BeforeEach(func() {
+					fakeSetRepository.DeleteStub = func(id int) error {
+						return nil
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("deletes the lift from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM lifts WHERE id=1")
+					var liftId int
+					readErr := row.Scan(&liftId)
+					Expect(readErr).ToNot(BeNil())
+					Expect(readErr).To(Equal(sql.ErrNoRows))
+				})
+
+				It("tells the set repository to delete all the lift's sets", func() {
+					Expect(fakeSetRepository.DeleteCallCount()).To(Equal(2))
+					Expect(fakeSetRepository.DeleteArgsForCall(0)).To(Equal(1))
+					Expect(fakeSetRepository.DeleteArgsForCall(1)).To(Equal(2))
+				})
+			})
+
+			Context("When the lift's sets do not exist in the database", func() {
+				BeforeEach(func() {
+					fakeSetRepository.DeleteStub = func(id int) error {
+						return setrepository.ErrDoesNotExist
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("deletes the lift from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM lifts WHERE id=1")
+					var liftId int
+					readErr := row.Scan(&liftId)
+					Expect(readErr).ToNot(BeNil())
+					Expect(readErr).To(Equal(sql.ErrNoRows))
+				})
+
+				It("tells the set repository to delete all the lift's sets", func() {
+					Expect(fakeSetRepository.DeleteCallCount()).To(Equal(2))
+					Expect(fakeSetRepository.DeleteArgsForCall(0)).To(Equal(1))
+					Expect(fakeSetRepository.DeleteArgsForCall(1)).To(Equal(2))
+				})
+			})
+
+			Context("When any of the lift's sets cannot be deleted", func() {
+				BeforeEach(func() {
+					fakeSetRepository.DeleteStub = func(id int) error {
+						return errors.New("error")
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns an error describing the failure", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Lift delete failed: Could not delete set with id=1"))
+				})
+
+				It("does not delete the lift from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM lifts WHERE id=1")
+					var liftId int
+					readErr := row.Scan(&liftId)
+					Expect(readErr).To(BeNil())
+					Expect(liftId).To(Equal(1))
+				})
+			})
+		})
+
+		Context("When no lift with the given id exists in the database", func() {
+			BeforeEach(func() {
+				err = subject.Delete(1123432)
+			})
+
+			It("returns DoesNotExist error", func() {
+				Expect(err).To(Equal(liftrepository.ErrDoesNotExist))
 			})
 		})
 	})
