@@ -7,10 +7,11 @@ import (
 	"log"
 
 	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
+	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	"github.com/jwfriese/workouttrackerapi/lifts/repository/repositoryfakes"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
-	"github.com/jwfriese/workouttrackerapi/workouts/repository"
+	workoutrepository "github.com/jwfriese/workouttrackerapi/workouts/repository"
 	_ "github.com/lib/pq"
 
 	. "github.com/onsi/ginkgo"
@@ -43,7 +44,7 @@ func clearWorkoutsDatabase(openConnection *sql.DB) {
 
 var _ = Describe("WorkoutRepository", func() {
 	var (
-		subject            repository.WorkoutRepository
+		subject            workoutrepository.WorkoutRepository
 		testConnection     *sql.DB
 		fakeLiftRepository *repositoryfakes.FakeLiftRepository
 	)
@@ -57,7 +58,7 @@ var _ = Describe("WorkoutRepository", func() {
 
 		populateWorkoutsDatabase(testConnection)
 		fakeLiftRepository = new(repositoryfakes.FakeLiftRepository)
-		subject = repository.NewWorkoutRepository(testConnection, fakeLiftRepository)
+		subject = workoutrepository.NewWorkoutRepository(testConnection, fakeLiftRepository)
 	})
 
 	AfterEach(func() {
@@ -278,6 +279,104 @@ var _ = Describe("WorkoutRepository", func() {
 			It("returns a descriptive error message", func() {
 				Expect(err).ToNot(BeNil())
 				Expect(err.Error()).To(Equal("Error inserting workout: Error inserting lift"))
+			})
+		})
+	})
+
+	Describe("Deleting workouts", func() {
+		var (
+			err error
+		)
+
+		Context("When the workout exists in the database", func() {
+			Context("When deleting workout lifts produces no errors", func() {
+				BeforeEach(func() {
+					fakeLiftRepository.DeleteStub = func(liftId int) error {
+						return nil
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("deletes the workout with the given id from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM workouts WHERE id=1")
+					var id int
+					readErr := row.Scan(&id)
+					Expect(readErr).ToNot(BeNil())
+					Expect(readErr).To(Equal(sql.ErrNoRows))
+				})
+
+				It("tells the lift repository to delete the associated lifts", func() {
+					Expect(fakeLiftRepository.DeleteCallCount()).To(Equal(2))
+					Expect(fakeLiftRepository.DeleteArgsForCall(0)).To(Equal(1))
+					Expect(fakeLiftRepository.DeleteArgsForCall(1)).To(Equal(2))
+				})
+			})
+
+			Context("When the workout's lifts do not exist", func() {
+				BeforeEach(func() {
+					fakeLiftRepository.DeleteStub = func(liftId int) error {
+						return liftrepository.ErrDoesNotExist
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("deletes the workout with the given id from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM workouts WHERE id=1")
+					var id int
+					readErr := row.Scan(&id)
+					Expect(readErr).ToNot(BeNil())
+					Expect(readErr).To(Equal(sql.ErrNoRows))
+				})
+
+				It("tells the lift repository to delete the associated lifts", func() {
+					Expect(fakeLiftRepository.DeleteCallCount()).To(Equal(2))
+					Expect(fakeLiftRepository.DeleteArgsForCall(0)).To(Equal(1))
+					Expect(fakeLiftRepository.DeleteArgsForCall(1)).To(Equal(2))
+				})
+			})
+
+			Context("When any of the workout's lifts fail to delete", func() {
+				BeforeEach(func() {
+					fakeLiftRepository.DeleteStub = func(id int) error {
+						return errors.New("error")
+					}
+
+					err = subject.Delete(1)
+				})
+
+				It("returns a descriptive error", func() {
+					Expect(err).ToNot(BeNil())
+					Expect(err.Error()).To(Equal("Workout failed to delete: Lift with id=1 could not be deleted"))
+				})
+
+				It("does not delete the workout from the database", func() {
+					row := testConnection.QueryRow("SELECT id FROM workouts WHERE id=1")
+					var id int
+					readErr := row.Scan(&id)
+					Expect(readErr).To(BeNil())
+					Expect(id).To(Equal(1))
+				})
+			})
+		})
+
+		Context("When the workout does not exist in the database", func() {
+			BeforeEach(func() {
+				err = subject.Delete(123456)
+			})
+
+			It("returns a DoesNotExist error", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err).To(Equal(workoutrepository.ErrDoesNotExist))
 			})
 		})
 	})
