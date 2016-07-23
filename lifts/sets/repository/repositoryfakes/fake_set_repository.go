@@ -27,6 +27,14 @@ type FakeSetRepository struct {
 		result1 int
 		result2 error
 	}
+	DeleteStub        func(id int) error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		id int
+	}
+	deleteReturns struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -99,6 +107,39 @@ func (fake *FakeSetRepository) InsertReturns(result1 int, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeSetRepository) Delete(id int) error {
+	fake.deleteMutex.Lock()
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		id int
+	}{id})
+	fake.recordInvocation("Delete", []interface{}{id})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub(id)
+	} else {
+		return fake.deleteReturns.result1
+	}
+}
+
+func (fake *FakeSetRepository) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
+}
+
+func (fake *FakeSetRepository) DeleteArgsForCall(i int) int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return fake.deleteArgsForCall[i].id
+}
+
+func (fake *FakeSetRepository) DeleteReturns(result1 error) {
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeSetRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -106,6 +147,8 @@ func (fake *FakeSetRepository) Invocations() map[string][][]interface{} {
 	defer fake.getByIdMutex.RUnlock()
 	fake.insertMutex.RLock()
 	defer fake.insertMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	return fake.invocations
 }
 
