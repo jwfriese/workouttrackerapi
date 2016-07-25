@@ -50,23 +50,50 @@ var _ = Describe("LiftsCreateRequestTranslator", func() {
 					errString := fmt.Sprintf("Invalid requestJSON (%q). Expected (%q) or (%q)", requestJSON, []byte(`{"name":"setOne}"`), []byte(`{"name":"setTwo"}`))
 					return nil, errors.New(errString)
 				}
-
-				validJSON := []byte(`{"name":"turtle shoulder press","dataTemplate":"weight/time_in_seconds", "sets":[{"name":"setOne"},{"name":"setTwo"}]}`)
-
-				result, err = subject.Translate(validJSON)
 			})
 
-			It("returns no error", func() {
-				Expect(err).To(BeNil())
+			Context("When JSON includes 'workout'", func() {
+				BeforeEach(func() {
+					validJSON := []byte(`{"name":"turtle shoulder press","workout":10,"dataTemplate":"weight/time_in_seconds","sets":[{"name":"setOne"},{"name":"setTwo"}]}`)
+
+					result, err = subject.Translate(validJSON)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("translates the JSON into a lift, with workout", func() {
+					Expect(result).ToNot(BeNil())
+					Expect(result.Name).To(Equal("turtle shoulder press"))
+					Expect(result.Workout).To(Equal(10))
+					Expect(result.DataTemplate).To(Equal("weight/time_in_seconds"))
+					Expect(len(result.Sets)).To(Equal(2))
+					Expect(result.Sets[0]).To(BeIdenticalTo(setOne))
+					Expect(result.Sets[1]).To(BeIdenticalTo(setTwo))
+				})
 			})
 
-			It("translates the JSON into a lift", func() {
-				Expect(result).ToNot(BeNil())
-				Expect(result.Name).To(Equal("turtle shoulder press"))
-				Expect(result.DataTemplate).To(Equal("weight/time_in_seconds"))
-				Expect(len(result.Sets)).To(Equal(2))
-				Expect(result.Sets[0]).To(BeIdenticalTo(setOne))
-				Expect(result.Sets[1]).To(BeIdenticalTo(setTwo))
+			Context("When JSON does not include 'workout'", func() {
+				BeforeEach(func() {
+					validJSON := []byte(`{"name":"turtle shoulder press","dataTemplate":"weight/time_in_seconds", "sets":[{"name":"setOne"},{"name":"setTwo"}]}`)
+
+					result, err = subject.Translate(validJSON)
+				})
+
+				It("returns no error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("translates the JSON into a lift, with workout == -1", func() {
+					Expect(result).ToNot(BeNil())
+					Expect(result.Name).To(Equal("turtle shoulder press"))
+					Expect(result.Workout).To(Equal(-1))
+					Expect(result.DataTemplate).To(Equal("weight/time_in_seconds"))
+					Expect(len(result.Sets)).To(Equal(2))
+					Expect(result.Sets[0]).To(BeIdenticalTo(setOne))
+					Expect(result.Sets[1]).To(BeIdenticalTo(setTwo))
+				})
 			})
 		})
 

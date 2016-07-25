@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func populateLiftsDatabase(openConnection *sql.DB) {
+func populateDatabase(openConnection *sql.DB) {
 	_, err := openConnection.Exec("INSERT INTO lifts (name,workout,data_template,sets) VALUES ('turtle lift',1,'weight/reps','{1,2}')")
 	if err != nil {
 		log.Fatal(err)
@@ -28,15 +28,30 @@ func populateLiftsDatabase(openConnection *sql.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	_, err = openConnection.Exec("INSERT INTO workouts (lifts) VALUES ('{}')")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func clearLiftsDatabase(openConnection *sql.DB) {
+func clearDatabase(openConnection *sql.DB) {
 	_, err := openConnection.Exec("TRUNCATE lifts")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	_, err = openConnection.Exec("ALTER SEQUENCE lifts_id_seq RESTART WITH 1")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = openConnection.Exec("TRUNCATE workouts")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = openConnection.Exec("ALTER SEQUENCE workouts_id_seq RESTART WITH 1")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,14 +71,14 @@ var _ = Describe("LiftRepository", func() {
 			log.Fatal(err)
 		}
 
-		populateLiftsDatabase(testConnection)
+		populateDatabase(testConnection)
 
 		fakeSetRepository = new(setrepositoryfakes.FakeSetRepository)
 		subject = liftrepository.NewLiftRepository(testConnection, fakeSetRepository)
 	})
 
 	AfterEach(func() {
-		clearLiftsDatabase(testConnection)
+		clearDatabase(testConnection)
 	})
 
 	Describe("Getting lifts from the database", func() {
@@ -198,24 +213,24 @@ var _ = Describe("LiftRepository", func() {
 			setOne = &setdatamodel.Set{}
 			setTwo = &setdatamodel.Set{}
 			sets = []*setdatamodel.Set{setOne, setTwo}
+
+			fakeSetRepository.InsertStub = func(set *setdatamodel.Set) (int, error) {
+				if set == setOne {
+					return 35, nil
+				} else if set == setTwo {
+					return 36, nil
+				}
+
+				return -1, nil
+			}
 		})
 
 		Context("When insert input is valid", func() {
 			BeforeEach(func() {
-				fakeSetRepository.InsertStub = func(set *setdatamodel.Set) (int, error) {
-					if set == setOne {
-						return 35, nil
-					} else if set == setTwo {
-						return 36, nil
-					}
-
-					return -1, nil
-				}
-
 				newLift := &liftdatamodel.Lift{
 					Id:           -1,
 					Name:         "turtle hang cleans",
-					Workout:      25,
+					Workout:      1,
 					DataTemplate: "timeInSeconds",
 					Sets:         sets,
 				}
@@ -246,7 +261,96 @@ var _ = Describe("LiftRepository", func() {
 
 				Expect(liftId).To(Equal(3))
 				Expect(name).To(Equal("turtle hang cleans"))
-				Expect(workout).To(Equal(25))
+				Expect(workout).To(Equal(1))
+				Expect(dataTemplate).To(Equal("timeInSeconds"))
+
+				Expect(len(setIds)).To(Equal(2))
+				Expect(setIds[0]).To(Equal(35))
+				Expect(setIds[1]).To(Equal(36))
+			})
+
+			It("passes the sets along to the set repository to be inserted in there", func() {
+				Expect(fakeSetRepository.InsertArgsForCall(0)).To(BeIdenticalTo(setOne))
+				Expect(fakeSetRepository.InsertArgsForCall(1)).To(BeIdenticalTo(setTwo))
+			})
+
+			It("adds the new lift's id to the sets that are inserted", func() {
+				insertedSetOne := fakeSetRepository.InsertArgsForCall(0)
+				insertedSetTwo := fakeSetRepository.InsertArgsForCall(1)
+
+				Expect(insertedSetOne.Lift).To(Equal(3))
+				Expect(insertedSetTwo.Lift).To(Equal(3))
+			})
+
+			It("associates the new lift with the workout it specified", func() {
+				workoutRow := testConnection.QueryRow("SELECT lifts FROM workouts WHERE id=1")
+				var liftIds sqlhelpers.IntSlice
+				workoutScanErr := workoutRow.Scan(&liftIds)
+				Expect(workoutScanErr).To(BeNil())
+				Expect(liftIds).To(BeEquivalentTo([]int{3}))
+			})
+		})
+
+		Context("When the new lift's associated workout does not exist", func() {
+			BeforeEach(func() {
+				newLift := &liftdatamodel.Lift{
+					Id:           -1,
+					Name:         "turtle hang cleans",
+					Workout:      25,
+					DataTemplate: "timeInSeconds",
+					Sets:         sets,
+				}
+
+				createdId, err = subject.Insert(newLift)
+			})
+
+			It("returns an invalid id", func() {
+				Expect(createdId).To(Equal(-1))
+			})
+
+			It("returns a descriptive error", func() {
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Error inserting lift: Workout with id=25 does not exist"))
+			})
+		})
+
+		Context("When the new lift has a workout of -1", func() {
+			BeforeEach(func() {
+				newLift := &liftdatamodel.Lift{
+					Id:           -1,
+					Name:         "turtle hang cleans",
+					Workout:      -1,
+					DataTemplate: "timeInSeconds",
+					Sets:         sets,
+				}
+
+				createdId, err = subject.Insert(newLift)
+			})
+
+			It("does not return an error", func() {
+				Expect(err).To(BeNil())
+			})
+
+			It("returns the id of the created lift", func() {
+				Expect(createdId).To(Equal(3))
+			})
+
+			It("creates a full lift in the database", func() {
+				query := fmt.Sprintf("SELECT * FROM lifts WHERE id=%v", createdId)
+				row := testConnection.QueryRow(query)
+
+				var liftId int
+				var name string
+				var workout int
+				var dataTemplate string
+				var setIds sqlhelpers.IntSlice
+
+				err := row.Scan(&liftId, &name, &workout, &dataTemplate, &setIds)
+				Expect(err).To(BeNil())
+
+				Expect(liftId).To(Equal(3))
+				Expect(name).To(Equal("turtle hang cleans"))
+				Expect(workout).To(Equal(-1))
 				Expect(dataTemplate).To(Equal("timeInSeconds"))
 
 				Expect(len(setIds)).To(Equal(2))
@@ -277,7 +381,7 @@ var _ = Describe("LiftRepository", func() {
 				newLift := &liftdatamodel.Lift{
 					Id:           -1,
 					Name:         "turtle hang cleans",
-					Workout:      25,
+					Workout:      1,
 					DataTemplate: "timeInSeconds",
 					Sets:         sets,
 				}

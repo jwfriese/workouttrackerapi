@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jwfriese/workouttrackerapi/lifts"
 	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	setrepository "github.com/jwfriese/workouttrackerapi/lifts/sets/repository"
 	setstranslation "github.com/jwfriese/workouttrackerapi/lifts/sets/translation"
@@ -28,6 +29,7 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 	liftsCreateRequestTranslator := liftstranslation.NewLiftsCreateRequestTranslator(setsCreateRequestTranslator)
 	workoutsCreateRequestTranslator := workoutstranslation.NewWorkoutsCreateRequestTranslator(liftsCreateRequestTranslator)
 
+	handler.Handle("/lifts", lifts.LiftsCreateHandler(liftRepository, liftsCreateRequestTranslator))
 	handler.Handle("/workouts", workouts.WorkoutsIndexHandler(workoutRepository)).Methods("GET")
 	handler.Handle("/workouts", workouts.WorkoutsCreateHandler(workoutRepository, workoutsCreateRequestTranslator)).Methods("POST")
 

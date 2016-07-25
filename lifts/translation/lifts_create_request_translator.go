@@ -26,6 +26,7 @@ func NewLiftsCreateRequestTranslator(setTranslator settranslation.SetsCreateRequ
 type liftsCreateRequest struct {
 	Name         *string        `json:"name"`
 	DataTemplate *string        `json:"dataTemplate"`
+	Workout      *int           `json:"workout"`
 	SetObjects   *[]interface{} `json:"sets"`
 }
 
@@ -68,11 +69,16 @@ func (translator *liftsCreateRequestTranslator) Translate(requestJSON []byte) (*
 		sets = append(sets, set)
 	}
 
+	workout := -1
+	if request.Workout != nil {
+		workout = *(request.Workout)
+	}
+
 	lift := &liftdatamodel.Lift{
 		Id:           -1,
 		Name:         name,
 		DataTemplate: dataTemplate,
-		Workout:      -1,
+		Workout:      workout,
 		Sets:         sets,
 	}
 

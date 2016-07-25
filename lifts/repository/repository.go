@@ -116,6 +116,23 @@ func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 }
 
 func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
+	shouldAssociateWithWorkout := newLift.Workout > 0
+	var liftIds sqlhelpers.IntSlice
+	if shouldAssociateWithWorkout {
+		associatedWorkoutQuery := fmt.Sprintf("SELECT lifts FROM workouts WHERE id=%v", newLift.Workout)
+		associatedWorkoutRow := r.connection.QueryRow(associatedWorkoutQuery)
+
+		workoutScanErr := associatedWorkoutRow.Scan(&liftIds)
+		if workoutScanErr == sql.ErrNoRows {
+			errorString := fmt.Sprintf("Error inserting lift: Workout with id=%v does not exist", newLift.Workout)
+			return -1, errors.New(errorString)
+		}
+
+		if workoutScanErr != nil {
+			return -1, workoutScanErr
+		}
+	}
+
 	insertQuery := fmt.Sprintf("INSERT INTO lifts (name,workout,data_template) VALUES ('%v',%v,'%v') RETURNING id", newLift.Name, newLift.Workout, newLift.DataTemplate)
 	rows, err := r.connection.Query(insertQuery)
 	if err != nil {
@@ -130,6 +147,15 @@ func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
 
 	if err != nil {
 		return -1, err
+	}
+
+	if shouldAssociateWithWorkout {
+		liftIds = append(liftIds, createdId)
+		updateWorkoutQuery := fmt.Sprintf("UPDATE workouts SET lifts='%s' WHERE id=%v", liftIds.ToString(), newLift.Workout)
+		_, updateWorkoutErr := r.connection.Exec(updateWorkoutQuery)
+		if updateWorkoutErr != nil {
+			return -1, updateWorkoutErr
+		}
 	}
 
 	var setIds sqlhelpers.IntSlice
