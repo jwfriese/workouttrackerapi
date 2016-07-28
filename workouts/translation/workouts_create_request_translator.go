@@ -42,23 +42,21 @@ func (translator *workoutsCreateRequestTranslator) Translate(requestJSON []byte)
 
 	timestamp := *(workoutRequest.Timestamp)
 
-	if workoutRequest.LiftJSONObjects == nil {
-		return nil, errors.New("Missing required 'lifts' field from workout JSON")
-	}
+	lifts := []*liftdatamodel.Lift{}
+	if workoutRequest.LiftJSONObjects != nil {
+		for _, liftJSONInterface := range *(workoutRequest.LiftJSONObjects) {
+			liftJSON, jsonErr := json.Marshal(liftJSONInterface)
+			if jsonErr != nil {
+				return nil, jsonErr
+			}
 
-	var lifts []*liftdatamodel.Lift
-	for _, liftJSONInterface := range *(workoutRequest.LiftJSONObjects) {
-		liftJSON, jsonErr := json.Marshal(liftJSONInterface)
-		if jsonErr != nil {
-			return nil, jsonErr
+			lift, liftErr := translator.liftTranslator.Translate(liftJSON)
+			if liftErr != nil {
+				return nil, liftErr
+			}
+
+			lifts = append(lifts, lift)
 		}
-
-		lift, liftErr := translator.liftTranslator.Translate(liftJSON)
-		if liftErr != nil {
-			return nil, liftErr
-		}
-
-		lifts = append(lifts, lift)
 	}
 
 	createdWorkout := &workoutdatamodel.Workout{

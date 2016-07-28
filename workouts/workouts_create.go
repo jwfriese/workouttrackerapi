@@ -1,6 +1,7 @@
 package workouts
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -40,7 +41,7 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 	createdWorkoutId, insertErr := handler.repository.Insert(workout)
 	if insertErr != nil {
-		writeServerError(writer, insertErr)
+		writeRequestError(writer, insertErr)
 		return
 	}
 
@@ -64,14 +65,16 @@ func (handler *workoutsCreateHandler) ServeHTTP(writer http.ResponseWriter, requ
 
 func writeServerError(writer http.ResponseWriter, err error) {
 	writer.WriteHeader(http.StatusInternalServerError)
+	singleQuotedErr := bytes.Replace([]byte(err.Error()), []byte(`"`), []byte(`'`), -1)
 
-	errString := fmt.Sprintf("{\"error\":\"%s\"}", err.Error())
+	errString := fmt.Sprintf("{\"error\":\"%s\"}", string(singleQuotedErr))
 	writer.Write([]byte(errString))
 }
 
 func writeRequestError(writer http.ResponseWriter, err error) {
 	writer.WriteHeader(http.StatusBadRequest)
+	singleQuotedErr := bytes.Replace([]byte(err.Error()), []byte(`"`), []byte(`'`), -1)
 
-	errString := fmt.Sprintf("{\"error\":\"%s\"}", err.Error())
+	errString := fmt.Sprintf("{\"error\":\"%s\"}", string(singleQuotedErr))
 	writer.Write([]byte(errString))
 }
