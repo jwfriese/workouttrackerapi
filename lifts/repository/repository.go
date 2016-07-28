@@ -54,7 +54,7 @@ func (r *liftRepository) All() []*liftdatamodel.Lift {
 			log.Fatal(err)
 		}
 
-		var sets []*setdatamodel.Set
+		sets := []*setdatamodel.Set{}
 		for _, setId := range setIds {
 			set, _ := r.setRepository.GetById(setId)
 			sets = append(sets, set)
@@ -93,7 +93,7 @@ func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 		return nil, err
 	}
 
-	var sets []*setdatamodel.Set
+	sets := []*setdatamodel.Set{}
 	for _, setId := range setIds {
 		set, setErr := r.setRepository.GetById(setId)
 		if setErr != nil {
@@ -113,45 +113,6 @@ func (r *liftRepository) GetById(id int) (*liftdatamodel.Lift, error) {
 	}
 
 	return lift, nil
-}
-
-func (r *liftRepository) Insert(newLift *liftdatamodel.Lift) (int, error) {
-	insertQuery := fmt.Sprintf("INSERT INTO lifts (name,workout,data_template) VALUES ('%v',%v,'%v') RETURNING id", newLift.Name, newLift.Workout, newLift.DataTemplate)
-	rows, err := r.connection.Query(insertQuery)
-	if err != nil {
-		return -1, err
-	}
-
-	defer rows.Close()
-	rows.Next()
-
-	var createdId int
-	err = rows.Scan(&createdId)
-
-	if err != nil {
-		return -1, err
-	}
-
-	var setIds sqlhelpers.IntSlice
-	for _, set := range newLift.Sets {
-		set.Lift = createdId
-		setId, setInsertErr := r.setRepository.Insert(set)
-		if setInsertErr != nil {
-			setInsertErrString := fmt.Sprintf("Error inserting lift: %s", setInsertErr.Error())
-			return -1, errors.New(setInsertErrString)
-		}
-
-		setIds = append(setIds, setId)
-	}
-
-	updateLiftQuery := fmt.Sprintf("UPDATE lifts SET sets='%s' WHERE id=%v", setIds.ToString(), createdId)
-	_, updateLiftErr := r.connection.Exec(updateLiftQuery)
-
-	if updateLiftErr != nil {
-		return -1, updateLiftErr
-	}
-
-	return createdId, nil
 }
 
 func (repository *liftRepository) Delete(id int) error {

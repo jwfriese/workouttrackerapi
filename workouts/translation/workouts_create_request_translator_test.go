@@ -96,19 +96,6 @@ var _ = Describe("WorkoutsCreateRequestTranslator", func() {
 					Expect(err.Error()).To(Equal("Missing required 'timestamp' field from workout JSON"))
 				})
 			})
-
-			Context("Missing 'lifts'", func() {
-				BeforeEach(func() {
-					invalidJSON := []byte(`{"name":"turtle workout","timestamp":"2016-06-05T20:30:45-08:00"}`)
-
-					result, err = subject.Translate(invalidJSON)
-				})
-
-				It("returns an error", func() {
-					Expect(result).To(BeNil())
-					Expect(err.Error()).To(Equal("Missing required 'lifts' field from workout JSON"))
-				})
-			})
 		})
 	})
 })

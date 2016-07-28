@@ -116,43 +116,6 @@ func (r *workoutRepository) GetById(id int) (*workoutdatamodel.Workout, error) {
 	return workout, nil
 }
 
-func (r *workoutRepository) Insert(workout *workoutdatamodel.Workout) (int, error) {
-	insertStatement := fmt.Sprintf("INSERT INTO workouts (name,timestamp) VALUES ('%v','%v') RETURNING id", workout.Name, workout.Timestamp)
-	resultRows, err := r.connection.Query(insertStatement)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resultRows.Close()
-	resultRows.Next()
-
-	var insertId int
-	err = resultRows.Scan(&insertId)
-	if err != nil {
-		return -1, err
-	}
-
-	var liftIds sqlhelpers.IntSlice
-	for _, lift := range workout.Lifts {
-		lift.Workout = insertId
-		liftId, liftInsertErr := r.liftRepository.Insert(lift)
-		if liftInsertErr != nil {
-			liftInsertErrString := fmt.Sprintf("Error inserting workout: %s", liftInsertErr.Error())
-			return -1, errors.New(liftInsertErrString)
-		}
-
-		liftIds = append(liftIds, liftId)
-	}
-
-	updateLiftIdsQuery := fmt.Sprintf("UPDATE workouts SET lifts='%v' WHERE id=%v", liftIds.ToString(), insertId)
-	_, updateErr := r.connection.Exec(updateLiftIdsQuery)
-	if updateErr != nil {
-		return -1, updateErr
-	}
-
-	return insertId, nil
-}
-
 func (repository *workoutRepository) Delete(id int) error {
 	workoutQuery := fmt.Sprintf("SELECT id, lifts FROM workouts WHERE id=%v", id)
 	workoutRow := repository.connection.QueryRow(workoutQuery)
