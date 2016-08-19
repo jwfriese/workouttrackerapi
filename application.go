@@ -20,7 +20,7 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 
 	setsCreateRequestTranslator := setstranslation.NewSetsCreateRequestTranslator()
 	liftsCreateRequestTranslator := liftstranslation.NewLiftsCreateRequestTranslator(setsCreateRequestTranslator)
-	workoutsCreateRequestTranslator := workoutstranslation.NewWorkoutsCreateRequestTranslator(liftsCreateRequestTranslator)
+	workoutsCreateRequestTranslator := workoutstranslation.NewWorkoutsCreateRequestTranslator()
 
 	setRepository := setrepository.NewSetRepository(db)
 	liftRepository := liftrepository.NewLiftRepository(db, setRepository)

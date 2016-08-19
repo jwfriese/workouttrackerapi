@@ -3,8 +3,6 @@ package workouts_test
 import (
 	"net/http"
 
-	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
-	setdatamodel "github.com/jwfriese/workouttrackerapi/lifts/sets/datamodel"
 	"github.com/jwfriese/workouttrackerapi/test/http/httpfakes"
 	"github.com/jwfriese/workouttrackerapi/workouts"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
@@ -30,39 +28,18 @@ var _ = Describe("/workouts", func() {
 		})
 
 		Describe("JSON served from index", func() {
-			var (
-				liftOne *liftdatamodel.Lift
-				liftTwo *liftdatamodel.Lift
-			)
-
 			BeforeEach(func() {
-				liftOne = &liftdatamodel.Lift{
-					Id:           60,
-					Name:         "lift one",
-					DataTemplate: "dt1",
-					Workout:      1234,
-					Sets:         []*setdatamodel.Set{},
-				}
-
-				liftTwo = &liftdatamodel.Lift{
-					Id:           61,
-					Name:         "lift two",
-					DataTemplate: "dt2",
-					Workout:      1234,
-					Sets:         []*setdatamodel.Set{},
-				}
-
 				turtleWorkout = &workoutdatamodel.Workout{
 					Id:        1234,
 					Timestamp: "turtle timestamp",
-					Lifts:     []*liftdatamodel.Lift{liftOne, liftTwo},
+					Lifts:     []int{2, 3},
 					Name:      "turtle workout",
 				}
 
 				crabWorkout = &workoutdatamodel.Workout{
 					Id:        2345,
 					Timestamp: "crab timestamp",
-					Lifts:     []*liftdatamodel.Lift{},
+					Lifts:     []int{10, 20, 30},
 					Name:      "crab workout",
 				}
 
@@ -75,7 +52,7 @@ var _ = Describe("/workouts", func() {
 			})
 
 			It("writes all workouts as JSON to the response", func() {
-				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(Equal([]byte(`[{"id":1234,"timestamp":"turtle timestamp","lifts":[{"id":60,"name":"lift one","dataTemplate":"dt1","workout":1234,"sets":[]},{"id":61,"name":"lift two","dataTemplate":"dt2","workout":1234,"sets":[]}],"name":"turtle workout"},{"id":2345,"timestamp":"crab timestamp","lifts":[],"name":"crab workout"}]`)))
+				Expect(fakeResponseWriter.WriteArgsForCall(0)).To(MatchJSON([]byte(`[{"id":1234,"timestamp":"turtle timestamp","lifts":[2,3],"name":"turtle workout"},{"id":2345,"timestamp":"crab timestamp","lifts":[10,20,30],"name":"crab workout"}]`)))
 			})
 		})
 	})

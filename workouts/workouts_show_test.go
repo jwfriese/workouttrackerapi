@@ -49,7 +49,7 @@ var _ = Describe("/workouts/{id}", func() {
 
 		Context("When a workout with the given ID exists in the database", func() {
 			BeforeEach(func() {
-				url := fmt.Sprintf("%v/%v", baseURL, "/workouts/3")
+				url := fmt.Sprintf("%v/%v", baseURL, "/workouts/2")
 				response, getErr = http.Get(url)
 
 				if getErr != nil {
@@ -69,7 +69,7 @@ var _ = Describe("/workouts/{id}", func() {
 			})
 
 			It("returns the workout JSON-ified", func() {
-				Expect(body).To(Equal([]byte(`{"id":3,"timestamp":"2016-03-11T06:12:56-08:00","lifts":[],"name":"turtle three"}`)))
+				Expect(body).To(MatchJSON([]byte(`{"id":2,"timestamp":"2016-03-09T06:04:44-08:00","lifts":[4,5],"name":"turtle two"}`)))
 			})
 		})
 

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 
-	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
 	liftrepository "github.com/jwfriese/workouttrackerapi/lifts/repository"
 	"github.com/jwfriese/workouttrackerapi/sqlhelpers"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
@@ -55,17 +54,11 @@ func (r *workoutRepository) All() []*workoutdatamodel.Workout {
 				log.Fatal(err)
 			}
 
-			lifts := []*liftdatamodel.Lift{}
-			for _, liftId := range liftIds {
-				lift, _ := r.liftRepository.GetById(liftId)
-				lifts = append(lifts, lift)
-			}
-
 			workouts = append(workouts, &workoutdatamodel.Workout{
 				Id:        id,
 				Name:      name,
 				Timestamp: timestamp,
-				Lifts:     lifts,
+				Lifts:     liftIds,
 			})
 		}
 
@@ -95,22 +88,11 @@ func (r *workoutRepository) GetById(id int) (*workoutdatamodel.Workout, error) {
 		return nil, err
 	}
 
-	lifts := []*liftdatamodel.Lift{}
-	for _, liftId := range liftIds {
-		lift, liftErr := r.liftRepository.GetById(liftId)
-		if liftErr != nil {
-			liftErrString := fmt.Sprintf("Error fetching workout (id=%v): %s", id, liftErr.Error())
-			return nil, errors.New(liftErrString)
-		}
-
-		lifts = append(lifts, lift)
-	}
-
 	workout := &workoutdatamodel.Workout{
 		Id:        workoutId,
 		Name:      name,
 		Timestamp: timestamp,
-		Lifts:     lifts,
+		Lifts:     liftIds,
 	}
 
 	return workout, nil
