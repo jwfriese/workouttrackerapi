@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	liftdatamodel "github.com/jwfriese/workouttrackerapi/lifts/datamodel"
-	lifttranslation "github.com/jwfriese/workouttrackerapi/lifts/translation"
 	workoutdatamodel "github.com/jwfriese/workouttrackerapi/workouts/datamodel"
 )
 
@@ -13,14 +11,10 @@ type WorkoutsCreateRequestTranslator interface {
 	Translate(requestJSON []byte) (*workoutdatamodel.Workout, error)
 }
 
-type workoutsCreateRequestTranslator struct {
-	liftTranslator lifttranslation.LiftsCreateRequestTranslator
-}
+type workoutsCreateRequestTranslator struct{}
 
-func NewWorkoutsCreateRequestTranslator(liftTranslator lifttranslation.LiftsCreateRequestTranslator) WorkoutsCreateRequestTranslator {
-	return &workoutsCreateRequestTranslator{
-		liftTranslator: liftTranslator,
-	}
+func NewWorkoutsCreateRequestTranslator() WorkoutsCreateRequestTranslator {
+	return &workoutsCreateRequestTranslator{}
 }
 
 func (translator *workoutsCreateRequestTranslator) Translate(requestJSON []byte) (*workoutdatamodel.Workout, error) {
@@ -42,34 +36,17 @@ func (translator *workoutsCreateRequestTranslator) Translate(requestJSON []byte)
 
 	timestamp := *(workoutRequest.Timestamp)
 
-	lifts := []*liftdatamodel.Lift{}
-	if workoutRequest.LiftJSONObjects != nil {
-		for _, liftJSONInterface := range *(workoutRequest.LiftJSONObjects) {
-			liftJSON, jsonErr := json.Marshal(liftJSONInterface)
-			if jsonErr != nil {
-				return nil, jsonErr
-			}
-
-			lift, liftErr := translator.liftTranslator.Translate(liftJSON)
-			if liftErr != nil {
-				return nil, liftErr
-			}
-
-			lifts = append(lifts, lift)
-		}
-	}
-
 	createdWorkout := &workoutdatamodel.Workout{
 		Id:        -1,
 		Name:      name,
 		Timestamp: timestamp,
-		Lifts:     lifts,
+		Lifts:     nil,
 	}
+
 	return createdWorkout, nil
 }
 
 type workoutCreateRequest struct {
-	Name            *string        `json:"name"`
-	Timestamp       *string        `json:"timestamp"`
-	LiftJSONObjects *[]interface{} `json:"lifts"`
+	Name      *string `json:"name"`
+	Timestamp *string `json:"timestamp"`
 }
