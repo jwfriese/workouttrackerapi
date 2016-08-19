@@ -30,6 +30,7 @@ func ApplicationHandler(db *sql.DB) http.Handler {
 	workoutRepository := workoutrepository.NewWorkoutRepository(db, liftRepository)
 	handler.Handle("/workouts/{id:[0-9]+}", workouts.WorkoutsShowHandler(workoutRepository)).Methods("GET")
 	handler.Handle("/workouts/{id}", workouts.WorkoutsDeleteHandler(workoutRepository)).Methods("DELETE")
+	handler.Handle("/workouts/{workoutId}/lifts/{liftId}", lifts.LiftsShowHandler(liftRepository, workoutRepository)).Methods("GET")
 
 	handler.Handle("/workouts", workouts.WorkoutsIndexHandler(workoutRepository)).Methods("GET")
 	handler.Handle("/workouts", workouts.WorkoutsCreateHandler(workoutRepository, workoutsCreateRequestTranslator)).Methods("POST")
